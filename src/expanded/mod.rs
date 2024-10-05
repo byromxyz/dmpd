@@ -37,32 +37,6 @@ pub struct ExpandedPeriod {
     pub id: String,
 }
 
-impl ExpandedPeriod {
-    pub fn gap_start(&self) -> u64 {
-        let segments_start_ms = self
-            .adaptation_sets
-            .first()
-            .expect("No adaptation sets")
-            .start_ms();
-
-        if segments_start_ms < self.start_ms() {
-            return self.start_ms() - segments_start_ms;
-        } else {
-            return 0u64;
-        }
-    }
-
-    pub fn gap_end(&self) -> u64 {
-        let segments_start_ms = self
-            .adaptation_sets
-            .first()
-            .expect("No adaptation sets")
-            .start_ms();
-
-        segments_start_ms.min(self.start_ms())
-    }
-}
-
 impl Expanded for ExpandedPeriod {
     fn start_ms(&self) -> u64 {
         let segments_start_ms = self

@@ -50,9 +50,11 @@ fn main() {
             })
             .collect();
 
+        // Store all images in a png folder
         let png_path = path.join("png");
 
         if !png_path.exists() {
+            debug!("Creating path {:?}", png_path);
             let create_path_result = fs::create_dir(&png_path);
 
             if create_path_result.is_err() {
@@ -88,7 +90,7 @@ fn main() {
             .and_then(std::ffi::OsStr::to_str)
             .expect(&ParseError::CannotReadFileExtension.describe());
 
-        let filename = std::path::Path::new(&args.filename)
+        let file_stem = std::path::Path::new(&args.filename)
             .file_stem()
             .and_then(std::ffi::OsStr::to_str)
             .expect(&ParseError::CannotReadFileStem.describe());
@@ -115,7 +117,7 @@ fn main() {
                         &args.filename
                     ));
 
-                let output_path = parent_path.join(filename);
+                let output_path = parent_path.join(file_stem);
 
                 if !output_path.exists() {
                     let create_path_result = fs::create_dir(&output_path);

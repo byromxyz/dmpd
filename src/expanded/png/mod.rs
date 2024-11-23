@@ -188,8 +188,8 @@ impl ExpandedMpd {
                                     x,
                                     initial_y,
                                     period_height,
-                                    segment.repeat_ms,
-                                    segment.size,
+                                    segment.segment_duration_ms,
+                                    segment.segment_count,
                                     segment.start_ms
                                 );
 
@@ -198,12 +198,14 @@ impl ExpandedMpd {
                                     - 1i32;
 
                                 // Draw each individual segment
-                                for j in 0..segment.size {
+                                for j in 0..segment.segment_count {
                                     let y0 = initial_y
-                                        + ms_to_pixels(j * segment.repeat_ms, SCALE) as i32;
+                                        + ms_to_pixels(j * segment.segment_duration_ms, SCALE)
+                                            as i32;
 
                                     let y1 = initial_y
-                                        + ms_to_pixels((j + 1) * segment.repeat_ms, SCALE) as i32;
+                                        + ms_to_pixels((j + 1) * segment.segment_duration_ms, SCALE)
+                                            as i32;
 
                                     let height = y1 - y0;
 

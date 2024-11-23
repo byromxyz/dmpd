@@ -147,7 +147,7 @@ pub struct ExpandedSegmentTimelineSegment {
     pub start_ms: u64,
     pub end_ms: u64,
     pub duration_ms: u64,
-    pub repeat_ms: u64,
-    pub size: u64,
+    pub segment_duration_ms: u64,
+    pub segment_count: u64,
     pub presentation_time_offset: u64,
 }

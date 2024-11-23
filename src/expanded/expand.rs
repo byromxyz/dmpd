@@ -296,8 +296,8 @@ fn parse_segment_template(
             start_ms: segment_element_start_ms,
             duration_ms: segment_element_duration_ms,
             end_ms: segment_element_end_ms,
-            repeat_ms: segment_duration_ms,
-            size: segment_repeat,
+            segment_duration_ms,
+            segment_count: segment_repeat,
             presentation_time_offset: presentation_time_offset,
         };
 

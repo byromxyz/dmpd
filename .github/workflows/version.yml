@@ -1,0 +1,147 @@
+name: Version
+run-name: Version | ${{ inputs.release_type || 'preview' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - patch
+          - minor
+          - major
+
+  push:
+    branches:
+      - main
+
+env:
+  RELEASE_TYPE: ${{ github.event.inputs.release_type || 'preview' }}
+
+jobs:
+  version:
+    name: "Version: ${{ github.event.inputs.release_type || 'preview' }}"
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: New Version
+        id: bump
+        run: |
+          chmod +x ./scripts/version-bump.sh
+          ./scripts/version-bump.sh ${{ env.RELEASE_TYPE }}
+
+      - name: Verify
+        run: echo ${{ steps.bump.outputs.new_version }}
+
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    needs: version
+    env:
+      VERSION: ${{ needs.version.outputs.new_version }}
+    strategy:
+      matrix:
+        target:
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Write Version
+        run: |
+          chmod +x ./scripts/version-write.sh
+          ./scripts/version-write.sh ${{env.VERSION}}
+
+      - name: Verify Updated Cargo.toml
+        run: cat Cargo.toml | grep '^version'
+
+      - name: Add macOS Targets
+        run: rustup target add ${{ matrix.target }}
+
+      # Required for the pssh-box crate dependency
+      - name: Install Protobuf Compiler
+        run: brew install protobuf
+
+      - name: Build macOS Binary
+        run: |
+          cargo build --release --target ${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/dmpd target/${{ matrix.target }}/release/dmpd-${{ env.VERSION }}-${{ matrix.target }}
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/dmpd-${{ env.VERSION }}-${{ matrix.target }}
+
+  aggregate:
+    name: Aggregate Binaries
+    needs:
+      - version
+      - build-macos
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.version.outputs.new_version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: release/
+
+      - name: List Aggregated Binaries
+        run: ls -R release/
+
+      - name: Authenticate GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh auth setup-git
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.VERSION }} \
+            'release/x86_64-apple-darwin/dmpd-${{ env.VERSION }}-x86_64-apple-darwin#dmpd-${{ env.VERSION }}-x86_64-apple-darwin (Intel)' \
+            'release/aarch64-apple-darwin/dmpd-${{ env.VERSION }}-aarch64-apple-darwin#dmpd-${{ env.VERSION }}-aarch64-apple-darwin (Apple Silicon)' \
+            --title "Release ${{ env.VERSION }}" ${{ env.RELEASE_TYPE == 'preview' && '--prerelease' || '' }}
+
+      - name: Write Version
+        if: ${{ env.RELEASE_TYPE != 'preview' }}
+        run: |
+          chmod +x ./scripts/version-write.sh
+          ./scripts/version-write.sh ${{env.VERSION}}
+
+      - name: Configure Git
+        if: ${{ env.RELEASE_TYPE != 'preview' }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Commit changes
+        if: ${{ env.RELEASE_TYPE != 'preview' }}
+        run: |
+          git add .
+          git commit -m "Release: ${{ env.VERSION }}"
+
+      - name: Push changes
+        if: ${{ env.RELEASE_TYPE != 'preview' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin HEAD:main

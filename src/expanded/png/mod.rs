@@ -7,7 +7,7 @@ use crate::debug;
 use ab_glyph::{point, Font, FontRef, GlyphId, PxScale, ScaleFont};
 
 use draw_queue::DrawQueue;
-use image::{GenericImage, ImageBuffer, Rgba, RgbaImage};
+use image::{GenericImage, ImageBuffer, Rgba};
 use imageproc::drawing::{
     draw_filled_rect_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut,
 };

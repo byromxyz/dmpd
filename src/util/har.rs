@@ -1,7 +1,6 @@
-use std::fs;
+use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use std::{fs::File, path::Path};
 
 use chrono::DateTime;
 use serde::{Deserialize, Serialize};

@@ -8,17 +8,27 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --release --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Upload binary
-      uses: actions/upload-artifact@v3
-      with:
-        name: dmpd
-        path: target/release/dmpd
+      - uses: actions/checkout@v4
+      - name: Check Rust Version
+        run: rustc --version && cargo --version
+
+        # Required for the pssh-box crate dependency
+      - name: Install Protobuf Compiler
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - name: Verify Protoc Installation
+        run: protoc --version
+
+      - name: Build
+        run: cargo build --release --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: dmpd
+          path: target/release/dmpd

@@ -409,7 +409,7 @@ fn get_period_height(period: &ExpandedPeriod) -> u32 {
 
     let height = ms_to_pixels(duration_ms, SCALE) as u32;
 
-    if (period.start_ms() > period.period_start_ms) {
+    if period.start_ms() > period.period_start_ms {
         height + GAP_SIZE as u32
     } else {
         height
@@ -491,25 +491,25 @@ fn text_dimensions(font: &impl Font, text: &str, font_size: f32) -> (u32, u32) {
     (w as u32, h as u32)
 }
 
-// Function to draw a translucent rectangle
-fn draw_translucent_rect(img: &mut RgbaImage, rect: Rect, color: Rgba<u8>) {
-    for y in rect.top()..rect.bottom() {
-        for x in rect.left()..rect.right() {
-            if x >= 0 && y >= 0 && x < img.width() as i32 && y < img.height() as i32 {
-                let px = img.get_pixel_mut(x as u32, y as u32);
-                blend_pixel(px, color);
-            }
-        }
-    }
-}
+// // Function to draw a translucent rectangle
+// fn draw_translucent_rect(img: &mut RgbaImage, rect: Rect, color: Rgba<u8>) {
+//     for y in rect.top()..rect.bottom() {
+//         for x in rect.left()..rect.right() {
+//             if x >= 0 && y >= 0 && x < img.width() as i32 && y < img.height() as i32 {
+//                 let px = img.get_pixel_mut(x as u32, y as u32);
+//                 blend_pixel(px, color);
+//             }
+//         }
+//     }
+// }
 
-// Function to blend a pixel with a translucent color
-fn blend_pixel(pixel: &mut Rgba<u8>, overlay: Rgba<u8>) {
-    let alpha = overlay.0[3] as f32 / 255.0;
-    for i in 0..3 {
-        pixel.0[i] = (pixel.0[i] as f32 * (1.0 - alpha) + overlay.0[i] as f32 * alpha) as u8;
-    }
-}
+// // Function to blend a pixel with a translucent color
+// fn blend_pixel(pixel: &mut Rgba<u8>, overlay: Rgba<u8>) {
+//     let alpha = overlay.0[3] as f32 / 255.0;
+//     for i in 0..3 {
+//         pixel.0[i] = (pixel.0[i] as f32 * (1.0 - alpha) + overlay.0[i] as f32 * alpha) as u8;
+//     }
+// }
 
 fn get_period_width(period: &ExpandedPeriod) -> u32 {
     let mut width = 0u32;

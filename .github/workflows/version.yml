@@ -56,10 +56,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install Rust
+      - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+
+      - name: Clean Cargo Cache
+        run: rm -rf $HOME/.cargo/registry $HOME/.cargo/git
+
+      - name: Rust version
+        run: rustup show
 
       - name: Write Version
         run: |

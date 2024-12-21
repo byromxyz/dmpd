@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         target:
-          # - x86_64-apple-darwin
+          - x86_64-apple-darwin
           - aarch64-apple-darwin
     steps:
       - name: Checkout Code
@@ -123,17 +123,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${{ env.VERSION }} \
+            'release/x86_64-apple-darwin/dmpd-${{ env.VERSION }}-x86_64-apple-darwin#dmpd-${{ env.VERSION }}-x86_64-apple-darwin (Intel)' \
             'release/aarch64-apple-darwin/dmpd-${{ env.VERSION }}-aarch64-apple-darwin#dmpd-${{ env.VERSION }}-aarch64-apple-darwin (Apple Silicon)' \
             --title "Release ${{ env.VERSION }}" ${{ env.RELEASE_TYPE == 'preview' && '--prerelease' || '' }}
-
-      # - name: Create GitHub Release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     gh release create ${{ env.VERSION }} \
-      #       'release/x86_64-apple-darwin/dmpd-${{ env.VERSION }}-x86_64-apple-darwin#dmpd-${{ env.VERSION }}-x86_64-apple-darwin (Intel)' \
-      #       'release/aarch64-apple-darwin/dmpd-${{ env.VERSION }}-aarch64-apple-darwin#dmpd-${{ env.VERSION }}-aarch64-apple-darwin (Apple Silicon)' \
-      #       --title "Release ${{ env.VERSION }}" ${{ env.RELEASE_TYPE == 'preview' && '--prerelease' || '' }}
 
       - name: Write Version
         if: ${{ env.RELEASE_TYPE != 'preview' }}

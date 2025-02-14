@@ -88,7 +88,7 @@ jobs:
           mv target/${{ matrix.target }}/release/dmpd target/${{ matrix.target }}/release/dmpd-${{ env.VERSION }}-${{ matrix.target }}
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
           path: target/${{ matrix.target }}/release/dmpd-${{ env.VERSION }}-${{ matrix.target }}
@@ -106,7 +106,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download All Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: release/
 

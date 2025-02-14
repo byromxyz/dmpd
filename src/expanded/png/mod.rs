@@ -6,12 +6,9 @@ use crate::debug;
 
 use ab_glyph::{point, Font, FontRef, GlyphId, PxScale, ScaleFont};
 
-use draw_queue::DrawQueue;
+use draw_queue::{DrawQueue, DrawTask};
 use image::{GenericImage, ImageBuffer, Rgba};
-use imageproc::drawing::{
-    draw_filled_rect_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut,
-};
-use imageproc::rect::Rect;
+use imageproc::drawing::draw_text_mut;
 
 use super::{Expanded, ExpandedMpd, ExpandedPeriod, ExpandedSegments};
 
@@ -67,9 +64,6 @@ struct DrawnPeriod<'a> {
 
 impl ExpandedMpd {
     pub fn to_png(&mut self, debug: bool) -> Option<ImageBuffer<Rgba<u8>, Vec<u8>>> {
-        let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
-            .expect(&DrawError::CannotCreateFont.describe());
-
         let duration_ms = self.end_ms() - self.start_ms();
 
         if duration_ms > 600_000 {
@@ -85,6 +79,9 @@ impl ExpandedMpd {
             self.end_ms()
         );
 
+        let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
+            .expect(&DrawError::CannotCreateFont.describe());
+
         let canvas_height =
             ms_to_pixels(duration_ms, SCALE) + 2 * IMAGE_PADDING + PERIOD_TITLE_Y_SPACING;
 
@@ -93,6 +90,9 @@ impl ExpandedMpd {
         for period in self.periods.iter() {
             let period_width = get_period_width(period);
             let period_height = get_period_height(period);
+
+            // Create a new draw queue
+            let mut draw_queue = DrawQueue::new();
 
             let mut period_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_pixel(
                 period_width,
@@ -105,11 +105,13 @@ impl ExpandedMpd {
             if period.start_ms() > period.period_start_ms {
                 y_offset = GAP_SIZE;
 
-                draw_filled_rect_mut(
-                    &mut period_buffer,
-                    Rect::at(0, 0).of_size(period_width, GAP_SIZE as u32),
-                    Rgba([230, 230, 230, 255]),
-                );
+                draw_queue.queue(DrawTask::FilledRect {
+                    x: 0,
+                    y: 0,
+                    width: period_width,
+                    height: GAP_SIZE as u32,
+                    rgba: (230, 230, 230, 255),
+                });
 
                 let text = &format!(
                     "{} gap",
@@ -123,15 +125,13 @@ impl ExpandedMpd {
                 let x = (period_width - text_width) / 2;
                 let y = (GAP_SIZE as u32 - text_height) / 2;
 
-                draw_text_mut(
-                    &mut period_buffer,
-                    Rgba([0, 0, 0, 255]),
-                    x as i32,
-                    y as i32,
-                    gap_font_size,
-                    &font,
-                    text,
-                );
+                draw_queue.queue(DrawTask::Text {
+                    x: x as i32,
+                    y: y as i32,
+                    scale: gap_font_size,
+                    rgba: (0, 0, 0, 255),
+                    text: text.to_string(),
+                });
             }
 
             let y_offset: i32 = y_offset;
@@ -157,9 +157,6 @@ impl ExpandedMpd {
             for (_index, adaptation) in period.adaptation_sets.iter().enumerate() {
                 // Padding for the adaptation set
                 x_offset += ADAPTATION_SET_PADDING;
-
-                // Create a new draw queue
-                let mut draw_queue = DrawQueue::new();
 
                 // Draw all representations
                 for representation in adaptation.representations.iter() {
@@ -224,11 +221,13 @@ impl ExpandedMpd {
                                             _ => (255, 255, 0, 255),
                                         };
 
-                                        draw_filled_rect_mut(
-                                            &mut period_buffer,
-                                            Rect::at(x, y0).of_size(width, height as u32),
-                                            Rgba([r, g, b, a]),
-                                        );
+                                        draw_queue.queue(DrawTask::FilledRect {
+                                            x: x,
+                                            y: y0,
+                                            width: width,
+                                            height: height as u32,
+                                            rgba: (r, g, b, a),
+                                        });
 
                                         // start_y = y1;
                                         i += 1;
@@ -237,15 +236,14 @@ impl ExpandedMpd {
 
                                 initial_y = segment_end_y + 1;
 
-                                draw_line_segment_mut(
-                                    &mut period_buffer,
-                                    (x as f32 + (width as f32 / 4.0), segment_end_y as f32),
-                                    (
+                                draw_queue.queue(DrawTask::Line {
+                                    start: (x as f32 + (width as f32 / 4.0), segment_end_y as f32),
+                                    end: (
                                         x as f32 + width as f32 - 1f32 - (width as f32 / 4.0),
                                         segment_end_y as f32,
                                     ),
-                                    Rgba([0, 0, 0, 255]),
-                                )
+                                    rgba: (0, 0, 0, 255),
+                                });
                             }
                         }
                         _ => debug!("None segment timeline encountered"),
@@ -260,14 +258,13 @@ impl ExpandedMpd {
                             _ => Color::Blue,
                         };
 
-                        draw_queue.schedule(
-                            x as i32,
-                            y_offset,
-                            width,
-                            period_height - y_offset as u32,
-                            color.to_rgba(),
-                            false,
-                        );
+                        draw_queue.queue(DrawTask::FilledRect {
+                            x: x as i32,
+                            y: y_offset,
+                            width: width,
+                            height: period_height - y_offset as u32,
+                            rgba: color.to_rgba(),
+                        });
                     }
                 }
 
@@ -282,37 +279,15 @@ impl ExpandedMpd {
                 draw_queue.execute(&mut period_buffer);
             }
 
-            draw_hollow_rect_mut(
-                &mut period_buffer,
-                Rect::at(0i32, 0i32).of_size(
-                    period_width,
-                    ms_to_pixels(period.end_ms() - period.start_ms(), SCALE) + y_offset as u32,
-                ),
-                Rgba([0, 0, 0, 255]),
-            );
+            draw_queue.queue(DrawTask::HollowRect {
+                x: 0,
+                y: 0,
+                width: period_width,
+                height: ms_to_pixels(period.end_ms() - period.start_ms(), SCALE) + y_offset as u32,
+                rgba: (0, 0, 0, 255),
+            });
 
-            // if period.offset_ms() > 0 {
-            //     draw_translucent_rect(
-            //         &mut period_buffer,
-            //         Rect::at(0 as i32, 0)
-            //             .of_size(period_width, ms_to_pixels(period.offset_ms(), SCALE) + 1),
-            //         Rgba([255, 255, 255, 150]),
-            //     );
-            // }
-
-            // draw_translucent_rect(
-            //     &mut period_buffer,
-            //     Rect::at(
-            //         0i32,
-            //         ms_to_pixels(period.end_ms() - period.start_ms(), SCALE) as i32
-            //             + ms_to_pixels(period.offset_ms(), SCALE) as i32,
-            //     )
-            //     .of_size(
-            //         period_width,
-            //         20 + ms_to_pixels(period.offset_ms(), SCALE) + 1,
-            //     ),
-            //     Rgba([255, 255, 255, 150]),
-            // );
+            draw_queue.execute(&mut period_buffer);
 
             drawn_periods.push(DrawnPeriod {
                 buffer: period_buffer,

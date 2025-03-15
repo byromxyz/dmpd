@@ -9,6 +9,7 @@ mod util {
     pub mod error;
     pub mod har;
     pub mod parse;
+    pub mod parse_segment_template;
     pub mod update;
 }
 
@@ -24,10 +25,13 @@ pub struct Args {
 
     #[clap(short, long, action)]
     debug: bool,
+
+    #[clap(short, long, action)]
+    plan: bool,
 }
 
 fn main() {
-    let args = Args::parse();
+    let args: Args = Args::parse();
 
     update::check_updates();
 
@@ -109,8 +113,16 @@ fn main() {
 
                 let mut expanded = ExpandedMpd::new(mpd);
 
-                if let Some(image) = expanded.to_png(args.debug) {
-                    image.save(args.filename.replace(".mpd", ".png")).unwrap();
+                if args.plan {
+                    let json_plan = expanded.to_plan();
+
+                    let json_path = args.filename.replace(".mpd", ".plan.json");
+                    std::fs::write(&json_path, json_plan)
+                        .expect("Failed to write plan to JSON file");
+                } else {
+                    if let Some(image) = expanded.to_png(args.debug) {
+                        image.save(args.filename.replace(".mpd", ".png")).unwrap();
+                    }
                 }
             }
             "har" => {

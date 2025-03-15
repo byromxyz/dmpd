@@ -1,17 +1,47 @@
-use dash_mpd::MPD;
+use chrono::Utc;
+use dash_mpd::{Period, MPD};
 
 use crate::{
     debug,
-    util::{
-        error::ParseError,
-        parse::{
-            describe_representation, parse_period_duration_ms, parse_period_start_ms,
-            parse_segment_template,
-        },
-    },
+    util::{parse::describe_representation, parse_segment_template},
 };
 
-use super::{Expanded, ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
+use super::{ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
+
+fn get_period_start_ms(current: &Period, prev_end_ms: u64) -> u64 {
+    current
+        .start
+        .map(|s| s.as_millis() as u64)
+        .unwrap_or(prev_end_ms)
+}
+
+fn get_period_duration_ms(
+    current: &Period,
+    next: Option<&Period>,
+    start_ms: u64,
+    is_dynamic: bool,
+) -> u64 {
+    if let Some(duration) = current.duration {
+        return duration.as_millis() as u64;
+    }
+
+    if let Some(next) = next {
+        if let Some(next_start) = next.start {
+            return next_start.as_millis() as u64 - start_ms;
+        }
+    }
+
+    // No duration defined and no next period.
+    // If a dynamic manifest calculate until wall clock time.
+
+    if is_dynamic {
+        let now = Utc::now();
+
+        return now.timestamp_millis() as u64 - start_ms;
+    }
+
+    panic!("Unable to parse period duration");
+}
 
 impl ExpandedMpd {
     pub fn new(mpd: MPD) -> Self {
@@ -19,13 +49,18 @@ impl ExpandedMpd {
 
         let mut previous_period_end_ms = 0u64;
 
-        for p in mpd.periods {
+        for (i, p) in mpd.periods.iter().enumerate() {
+            let next = mpd.periods.get(i + 1);
+
+            let is_dynamic = mpd.mpdtype.as_deref() == Some("dynamic");
+
+            let period_start_ms = get_period_start_ms(p, previous_period_end_ms);
+            let period_duration_ms = get_period_duration_ms(p, next, period_start_ms, is_dynamic);
+            let period_end_ms = period_start_ms + period_duration_ms;
+
             let period_id = p.id.clone().unwrap_or("No ID".to_owned());
 
             debug!("\nPeriod: {}", period_id);
-
-            let period_start_ms = parse_period_start_ms(&p, previous_period_end_ms);
-            let period_duration_ms: Option<u64> = parse_period_duration_ms(&p);
 
             debug!("  {} AdaptationSets", p.adaptations.len());
 
@@ -49,10 +84,11 @@ impl ExpandedMpd {
                 let content_type = match adaptation.contentType {
                     Some(ref s) if s == "audio" => "audio",
                     Some(ref s) if s == "video" => "video",
-                    _ => panic!(
-                        "{}",
-                        &ParseError::AdaptationSetWithoutContentType.describe()
-                    ),
+                    _ => match adaptation.mimeType {
+                        Some(ref s) if s.contains("video") => "video",
+                        Some(ref s) if s.contains("audio") => "audio",
+                        _ => "unknown",
+                    },
                 };
 
                 for rep in adaptation.representations.iter() {
@@ -65,11 +101,13 @@ impl ExpandedMpd {
                         representation_id, representation_description
                     );
 
-                    let segments = parse_segment_template(
+                    let segments = parse_segment_template::parse_segment_template(
                         &rep.SegmentTemplate,
                         &adaptation.SegmentTemplate,
                         &p.SegmentTemplate,
-                        period_start_ms,
+                        parse_segment_template::Context {
+                            period_duration_ms: p.duration.map(|d| d.as_millis() as u64),
+                        },
                     );
 
                     representations.push(ExpandedRepresentation { segments });
@@ -82,14 +120,16 @@ impl ExpandedMpd {
 
                 adaptation_sets.push(adaptation_set);
             }
+
             let period = ExpandedPeriod {
-                period_start_ms,
+                start_ms: period_start_ms,
+                end_ms: period_end_ms,
                 period_duration_ms,
                 adaptation_sets,
                 id: period_id,
             };
 
-            previous_period_end_ms = period.end_ms();
+            previous_period_end_ms = period_end_ms;
 
             _periods.push(period);
         }

@@ -13,6 +13,26 @@ pub struct ExpandedMpd {
     pub periods: Vec<ExpandedPeriod>,
 }
 
+// TODO - Reconsider naming of start_ms, end_ms, etc.
+
+impl ExpandedMpd {
+    pub fn start_timestamp_ms(&self) -> u64 {
+        let first_period = self.periods.first().expect("No periods");
+
+        let start_timestamp = first_period.start_ms + first_period.start_ms();
+
+        start_timestamp
+    }
+
+    pub fn end_timestamp_ms(&self) -> u64 {
+        let last_period = self.periods.iter().last().expect("No periods");
+
+        let end_timestamp = last_period.start_ms + last_period.end_ms();
+
+        end_timestamp
+    }
+}
+
 impl Expanded for ExpandedMpd {
     fn start_ms(&self) -> u64 {
         self.periods
@@ -28,38 +48,35 @@ impl Expanded for ExpandedMpd {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExpandedPeriod {
     pub adaptation_sets: Vec<ExpandedAdaptationSet>,
-    pub period_start_ms: u64,
-    pub period_duration_ms: Option<u64>,
+    pub start_ms: u64,
+    pub end_ms: u64,
+    pub period_duration_ms: u64,
     pub id: String,
 }
 
 impl Expanded for ExpandedPeriod {
     fn start_ms(&self) -> u64 {
-        let segments_start_ms = self
-            .adaptation_sets
-            .first()
-            .expect("No adaptation sets")
-            .start_ms();
-
-        segments_start_ms
+        self.adaptation_sets
+            .iter()
+            .map(|adaptation_set| adaptation_set.start_ms())
+            .min()
+            .expect("Could not find segments start time")
     }
 
     fn end_ms(&self) -> u64 {
-        let segments_end_ms = self
-            .adaptation_sets
-            .first()
-            .expect("No adaptation sets")
-            .end_ms();
-
-        segments_end_ms
+        self.adaptation_sets
+            .iter()
+            .map(|adaptation_set| adaptation_set.end_ms())
+            .min()
+            .expect("Could not find segments start time")
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExpandedAdaptationSet {
     pub content_type: String, // audio or video
@@ -81,7 +98,7 @@ impl Expanded for ExpandedAdaptationSet {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExpandedRepresentation {
     pub segments: ExpandedSegments,
@@ -96,7 +113,7 @@ impl Expanded for ExpandedRepresentation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub enum ExpandedSegments {
     SegmentTemplate {
@@ -120,10 +137,10 @@ impl Expanded for ExpandedSegments {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExpandedSegmentTimeline {
-    pub segments: Vec<ExpandedSegmentTimelineSegment>,
+    pub segments: Vec<ExpandedSegmentDescription>,
 }
 
 impl Expanded for ExpandedSegmentTimeline {
@@ -141,13 +158,30 @@ impl Expanded for ExpandedSegmentTimeline {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
-pub struct ExpandedSegmentTimelineSegment {
+pub enum SegmentDescriptionType {
+    NumberTemplate {
+        start_number: u64,
+        segment_count: u64,
+    },
+    TimeTemplate {
+        start_units: u64,
+        duration_units: u64,
+        segment_count: u64,
+    },
+    Basic {
+        url: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub struct ExpandedSegmentDescription {
     pub start_ms: u64,
     pub end_ms: u64,
     pub duration_ms: u64,
     pub segment_duration_ms: u64,
     pub segment_count: u64,
-    pub presentation_time_offset: u64,
+    pub description_type: SegmentDescriptionType,
 }

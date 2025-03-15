@@ -7,14 +7,18 @@ use crate::debug;
 use ab_glyph::{point, Font, FontRef, GlyphId, PxScale, ScaleFont};
 
 use draw_queue::{DrawQueue, DrawTask};
-use image::{GenericImage, ImageBuffer, Rgba};
-use imageproc::drawing::draw_text_mut;
+use image::{ImageBuffer, Rgba};
+use imageproc::drawing::{draw_line_segment_mut, draw_text_mut};
 
-use super::{Expanded, ExpandedMpd, ExpandedPeriod, ExpandedSegments};
+use super::{
+    Expanded, ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation,
+    ExpandedSegments,
+};
 
 type PixelSpacing = u32;
 
-const IMAGE_PADDING: PixelSpacing = 60;
+const IMAGE_PADDING_X: PixelSpacing = 120;
+const IMAGE_PADDING_Y: PixelSpacing = 60;
 
 const SCALE: PixelSpacing = 40;
 
@@ -23,8 +27,7 @@ const PERIOD_TITLE_X_SPACING: PixelSpacing = 10;
 
 const FONT_SIZE: f32 = 20.0;
 
-const ADAPTATION_SET_PADDING: PixelSpacing = 0;
-const ADAPTATION_SET_SPACING: PixelSpacing = SCALE / 2;
+const ADAPTATION_SET_PADDING: PixelSpacing = 20;
 
 const REPRESENTATION_WIDTH: PixelSpacing = SCALE;
 const REPRESENTATION_PADDING: PixelSpacing = 5;
@@ -34,11 +37,8 @@ const GAP_SIZE: i32 = 50;
 enum Color {
     AudioSegmentOdd,
     AudioSegmentEvent,
-    AudioAdaptationBorder,
     VideoSegmentOdd,
     VideoSegmentEven,
-    VideoAdaptationBorder,
-    Blue,
 }
 
 impl Color {
@@ -46,310 +46,402 @@ impl Color {
         match self {
             Color::AudioSegmentOdd => (144, 190, 109, 255),
             Color::AudioSegmentEvent => (169, 204, 142, 255),
-            Color::AudioAdaptationBorder => (0, 255, 0, 255),
             Color::VideoSegmentOdd => (39, 125, 161, 255),
             Color::VideoSegmentEven => (47, 151, 196, 255),
-            Color::VideoAdaptationBorder => (255, 0, 0, 255),
-            Color::Blue => (0, 0, 255, 255),
         }
     }
 }
 
-struct DrawnPeriod<'a> {
-    y_offset: i32,
-    buffer: ImageBuffer<Rgba<u8>, Vec<u8>>,
+struct DrawnPeriod {
     title_buffer: ImageBuffer<Rgba<u8>, Vec<u8>>,
-    period: &'a ExpandedPeriod,
+    period: ExpandedPeriod,
+    draw_queue: DrawQueue,
+}
+
+struct DrawnRepresentation {
+    draw_queue: DrawQueue,
+    representation: ExpandedRepresentation,
+}
+
+struct DrawnAdaptationSet {
+    draw_queue: DrawQueue,
+    adaptation_set: ExpandedAdaptationSet,
 }
 
 impl ExpandedMpd {
-    pub fn to_png(&mut self, debug: bool) -> Option<ImageBuffer<Rgba<u8>, Vec<u8>>> {
-        let duration_ms = self.end_ms() - self.start_ms();
-
-        if duration_ms > 600_000 {
-            eprintln!("Manifest is > 10mins long. Will not parse");
-
-            return None;
-        }
-
-        debug!(
-            "Manifest is {}ms long ({} - {})",
-            duration_ms,
-            self.start_ms(),
-            self.end_ms()
-        );
-
+    fn prepare(&self) -> DrawQueue {
         let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
             .expect(&DrawError::CannotCreateFont.describe());
 
-        let canvas_height =
-            ms_to_pixels(duration_ms, SCALE) + 2 * IMAGE_PADDING + PERIOD_TITLE_Y_SPACING;
+        let start_timestamp = self.start_timestamp_ms();
+        let end_timestamp = self.end_timestamp_ms();
 
         let mut drawn_periods: Vec<DrawnPeriod> = vec![];
 
         for period in self.periods.iter() {
-            let period_width = get_period_width(period);
-            let period_height = get_period_height(period);
-
-            // Create a new draw queue
-            let mut draw_queue = DrawQueue::new();
-
-            let mut period_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_pixel(
-                period_width,
-                period_height + 20,
-                Rgba([255, 255, 255, 255]),
-            );
-
-            let mut y_offset: i32 = 0;
-
-            if period.start_ms() > period.period_start_ms {
-                y_offset = GAP_SIZE;
-
-                draw_queue.queue(DrawTask::FilledRect {
-                    x: 0,
-                    y: 0,
-                    width: period_width,
-                    height: GAP_SIZE as u32,
-                    rgba: (230, 230, 230, 255),
-                });
-
-                let text = &format!(
-                    "{} gap",
-                    &format_duration(period.start_ms() - period.period_start_ms)
-                );
-
-                let gap_font_size = 15f32;
-
-                let (text_width, text_height) = text_dimensions(&font, text, gap_font_size);
-
-                let x = (period_width - text_width) / 2;
-                let y = (GAP_SIZE as u32 - text_height) / 2;
-
-                draw_queue.queue(DrawTask::Text {
-                    x: x as i32,
-                    y: y as i32,
-                    scale: gap_font_size,
-                    rgba: (0, 0, 0, 255),
-                    text: text.to_string(),
-                });
-            }
-
-            let y_offset: i32 = y_offset;
-
-            // Track an x offset for all elements in the period
-            let mut x_offset = 0;
-
-            let (title_width, title_height) = text_dimensions(&font, &period.id, FONT_SIZE);
-
-            let mut title_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> =
-                ImageBuffer::from_pixel(title_width, title_height * 2, Rgba([255, 255, 255, 255]));
-
-            draw_text_mut(
-                &mut title_buffer,
-                Rgba([0, 0, 0, 255]),
-                0,
-                title_height as i32 / 4,
-                FONT_SIZE,
-                &font,
-                &period.id,
-            );
-
-            for (_index, adaptation) in period.adaptation_sets.iter().enumerate() {
-                // Padding for the adaptation set
-                x_offset += ADAPTATION_SET_PADDING;
-
-                // Draw all representations
-                for representation in adaptation.representations.iter() {
-                    let x = x_offset;
-
-                    let width = REPRESENTATION_WIDTH;
-
-                    // Slide the offset with padding
-                    x_offset += width + REPRESENTATION_PADDING;
-
-                    // let mut start_y = y_offset as i32;
-
-                    match &representation.segments {
-                        ExpandedSegments::SegmentTemplate { segment_timeline } => {
-                            let x = x as i32 + 1;
-                            let width = width - 2;
-
-                            let mut i = 0;
-
-                            let mut initial_y = y_offset as i32;
-
-                            for segment in &segment_timeline.segments {
-                                debug!(
-                                    "Draw segment {} {} {} {} x {}ms {} @ {}",
-                                    i,
-                                    x,
-                                    initial_y,
-                                    period_height,
-                                    segment.segment_duration_ms,
-                                    segment.segment_count,
-                                    segment.start_ms
-                                );
-
-                                let segment_end_y = initial_y
-                                    + ms_to_pixels(segment.duration_ms, SCALE) as i32
-                                    - 1i32;
-
-                                // Draw each individual segment
-                                for j in 0..segment.segment_count {
-                                    let y0 = initial_y
-                                        + ms_to_pixels(j * segment.segment_duration_ms, SCALE)
-                                            as i32;
-
-                                    let y1 = initial_y
-                                        + ms_to_pixels((j + 1) * segment.segment_duration_ms, SCALE)
-                                            as i32;
-
-                                    let height = y1 - y0;
-
-                                    if height < 1 {
-                                        debug!("Less than 1px segment");
-                                    } else {
-                                        let (r, g, b, a) = match adaptation.content_type.as_str() {
-                                            "audio" => match i % 2 {
-                                                0 => Color::AudioSegmentEvent.to_rgba(),
-                                                _ => Color::AudioSegmentOdd.to_rgba(),
-                                            },
-                                            "video" => match i % 2 {
-                                                0 => Color::VideoSegmentEven.to_rgba(),
-                                                _ => Color::VideoSegmentOdd.to_rgba(),
-                                            },
-                                            _ => (255, 255, 0, 255),
-                                        };
-
-                                        draw_queue.queue(DrawTask::FilledRect {
-                                            x: x,
-                                            y: y0,
-                                            width: width,
-                                            height: height as u32,
-                                            rgba: (r, g, b, a),
-                                        });
-
-                                        // start_y = y1;
-                                        i += 1;
-                                    }
-                                }
-
-                                initial_y = segment_end_y + 1;
-
-                                draw_queue.queue(DrawTask::Line {
-                                    start: (x as f32 + (width as f32 / 4.0), segment_end_y as f32),
-                                    end: (
-                                        x as f32 + width as f32 - 1f32 - (width as f32 / 4.0),
-                                        segment_end_y as f32,
-                                    ),
-                                    rgba: (0, 0, 0, 255),
-                                });
-                            }
-                        }
-                        _ => debug!("None segment timeline encountered"),
-                    }
-
-                    // Border the AdaptationSet
-
-                    if debug {
-                        let color = match adaptation.content_type.as_str() {
-                            "video" => Color::VideoAdaptationBorder,
-                            "audio" => Color::AudioAdaptationBorder,
-                            _ => Color::Blue,
-                        };
-
-                        draw_queue.queue(DrawTask::FilledRect {
-                            x: x as i32,
-                            y: y_offset,
-                            width: width,
-                            height: period_height - y_offset as u32,
-                            rgba: color.to_rgba(),
-                        });
-                    }
-                }
-
-                // offset -= REPRESENTATION_PADDING;
-
-                x_offset += ADAPTATION_SET_PADDING;
-
-                // (width + 1) * index as u32;
-                x_offset += ADAPTATION_SET_SPACING;
-
-                // Execute all scheduled drawing operations
-                draw_queue.execute(&mut period_buffer);
-            }
-
-            draw_queue.queue(DrawTask::HollowRect {
-                x: 0,
-                y: 0,
-                width: period_width,
-                height: ms_to_pixels(period.end_ms() - period.start_ms(), SCALE) + y_offset as u32,
-                rgba: (0, 0, 0, 255),
-            });
-
-            draw_queue.execute(&mut period_buffer);
-
-            drawn_periods.push(DrawnPeriod {
-                buffer: period_buffer,
-                title_buffer,
-                period,
-                y_offset,
-            });
-
             debug!("Drawing period");
+            let drawn_period = draw_period(period);
+
+            drawn_periods.push(drawn_period);
         }
 
-        let combined_width: u32 = drawn_periods.iter().map(|p| p.buffer.width()).sum();
+        let mut x_position = IMAGE_PADDING_X;
+        let mut i = 0;
 
-        let mut combined: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_pixel(
-            combined_width + 2 * IMAGE_PADDING,
-            canvas_height,
+        let mut draw_queue = DrawQueue::new();
+
+        for p in drawn_periods.iter() {
+            let y_position = ms_to_pixels(
+                p.period.start_ms + p.period.start_ms() - start_timestamp,
+                SCALE,
+            ) + IMAGE_PADDING_Y;
+
+            draw_queue.queue(DrawTask::Copy {
+                draw_queue: p.draw_queue.clone(),
+                x: x_position,
+                y: y_position + PERIOD_TITLE_Y_SPACING,
+            });
+
+            draw_queue.queue(DrawTask::Text {
+                x: x_position as i32,
+                y: y_position as i32 as i32,
+                scale: FONT_SIZE,
+                rgba: (0, 0, 0, 255),
+                text: p.period.id.clone(),
+            });
+
+            x_position += p.draw_queue.width();
+            i += 1;
+        }
+
+        draw_queue.queue(DrawTask::HollowRect {
+            x: 0,
+            y: 0,
+            width: draw_queue.width() + IMAGE_PADDING_X,
+            height: draw_queue.height() + IMAGE_PADDING_Y + PERIOD_TITLE_Y_SPACING,
+            rgba: (0, 0, 0, 255),
+        });
+
+        draw_queue
+    }
+
+    pub fn to_plan(&mut self) -> String {
+        let draw_queue = self.prepare();
+
+        draw_queue.plan()
+    }
+
+    pub fn to_png(&mut self, _debug: bool) -> Option<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let start_timestamp = self.start_timestamp_ms();
+        let end_timestamp = self.end_timestamp_ms();
+
+        let duration_ms = end_timestamp - start_timestamp;
+
+        let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
+            .expect(&DrawError::CannotCreateFont.describe());
+
+        // if duration_ms > 600_000 {
+        //     eprintln!("Manifest is > 10mins long. Will not parse");
+
+        //     return None;
+        // }
+
+        println!(
+            "Manifest is {}ms long ({} - {})",
+            duration_ms,
+            self.end_ms(),
+            self.start_ms(),
+        );
+
+        let draw_queue = self.prepare();
+
+        let mut background = ImageBuffer::from_pixel(
+            draw_queue.width(),
+            draw_queue.height(),
             Rgba([255, 255, 255, 255]),
         );
 
-        let mut x_position = IMAGE_PADDING;
-        let mut i = 0;
+        let mut next_second = 1000 - start_timestamp % 1000;
 
-        let start_timestamp = self.periods.first().expect("No periods").start_ms();
+        if next_second == 1000 {
+            next_second = 0;
+        }
 
-        for p in drawn_periods.iter() {
-            let y_position = ms_to_pixels(p.period.start_ms() - start_timestamp, SCALE)
-                + IMAGE_PADDING
-                - p.y_offset as u32;
+        let mut last_second = end_timestamp - (end_timestamp % 1000) - start_timestamp;
 
-            debug!(
-                "Copying {} {} to {} {} max {} {}",
-                p.buffer.width(),
-                p.buffer.height(),
-                x_position,
-                y_position,
-                combined.width(),
-                combined.height()
+        if end_timestamp % 1000 == 0 {
+            last_second = end_timestamp - start_timestamp;
+        }
+
+        // Draw lines for each whole second in the manifest
+        for i in (next_second..=last_second).step_by(1000) {
+            let y_position = ms_to_pixels(i, SCALE) as f32
+                + IMAGE_PADDING_Y as f32
+                + PERIOD_TITLE_Y_SPACING as f32;
+
+            draw_line_segment_mut(
+                &mut background,
+                (0f32, y_position),
+                (
+                    // IMAGE_PADDING as f32,
+                    draw_queue.width() as f32,
+                    // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
+                    y_position,
+                ),
+                Rgba([200, 200, 200, 255]),
             );
 
-            combined
-                .copy_from(
-                    &p.title_buffer,
-                    if i == 0 {
-                        x_position
-                    } else {
-                        x_position + PERIOD_TITLE_X_SPACING
-                    },
-                    y_position,
-                )
-                .expect("Unable to copy drawing");
+            let label_text = format!("{}", (i + start_timestamp) / 1000);
 
-            combined
-                .copy_from(&p.buffer, x_position, y_position + PERIOD_TITLE_Y_SPACING)
-                .expect("Unable to copy drawing");
+            let (title_width, title_height) = text_dimensions(&font, &label_text, FONT_SIZE / 1.5);
 
-            x_position += p.buffer.width();
-            i += 1;
+            draw_text_mut(
+                &mut background,
+                Rgba([200, 200, 200, 255]),
+                10i32,
+                y_position as i32 - title_height as i32 - 2,
+                FONT_SIZE / 1.5,
+                &font,
+                &label_text,
+            );
         }
+
+        let combined = draw_queue.execute_with_buffer(background);
 
         debug!("Done");
 
         Some(combined)
+    }
+}
+
+fn draw_period(period: &ExpandedPeriod) -> DrawnPeriod {
+    let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
+        .expect(&DrawError::CannotCreateFont.describe());
+
+    let height = ms_to_pixels(period.end_ms() - period.start_ms(), SCALE);
+    let start_ms = period.start_ms();
+
+    let mut drawn_adaptation_sets: Vec<DrawnAdaptationSet> = vec![];
+
+    for adaptation_set in period.adaptation_sets.iter() {
+        let adaptation_set_buffer = draw_adaptation_set(&adaptation_set, height, start_ms);
+
+        drawn_adaptation_sets.push(adaptation_set_buffer);
+    }
+
+    let period_width: u32 = drawn_adaptation_sets
+        .iter()
+        .map(|drawn_adaptation_set| {
+            drawn_adaptation_set.draw_queue.width() + ADAPTATION_SET_PADDING
+        })
+        .sum();
+
+    let period_width = period_width - ADAPTATION_SET_PADDING;
+
+    let period_height = drawn_adaptation_sets
+        .iter()
+        .map(|drawn_adaptation_set| drawn_adaptation_set.draw_queue.height())
+        .max()
+        .unwrap_or(0);
+
+    // Create a new draw queue
+    let mut draw_queue = DrawQueue::new();
+
+    // if period.start_ms() > 0 && period_index == 0 {
+    //     draw_queue.queue(DrawTask::FilledRect {
+    //         x: 0,
+    //         y: 0,
+    //         width: period_width,
+    //         height: GAP_SIZE as u32,
+    //         rgba: (255, 100, 100, 255),
+    //     });
+
+    //     let text = &format!("{} gap", &format_duration(period.start_ms()));
+
+    //     let gap_font_size = 15f32;
+
+    //     let (text_width, text_height) = text_dimensions(&font, text, gap_font_size);
+
+    //     let x = (period_width - text_width) / 2;
+    //     let y = (GAP_SIZE as u32 - text_height) / 2;
+
+    //     draw_queue.queue(DrawTask::Text {
+    //         x: x as i32,
+    //         y: y as i32,
+    //         scale: gap_font_size,
+    //         rgba: (0, 0, 0, 255),
+    //         text: text.to_string(),
+    //     });
+    // }
+
+    let mut offset_x = 0u32;
+
+    for drawn_adaptation_set in drawn_adaptation_sets.iter() {
+        debug!("Copying buffer {} {}", offset_x, 0,);
+
+        draw_queue.queue(DrawTask::Copy {
+            draw_queue: drawn_adaptation_set.draw_queue.clone(), // TODO - clone okay?
+            x: offset_x,
+            y: 0,
+        });
+
+        offset_x += drawn_adaptation_set.draw_queue.width() + ADAPTATION_SET_PADDING;
+    }
+
+    draw_queue.queue(DrawTask::HollowRect {
+        x: 0,
+        y: 0,
+        width: period_width,
+        height: period_height,
+        rgba: (0, 0, 0, 255),
+    });
+
+    // let period_buffer = draw_queue.execute();
+
+    let (title_width, title_height) = text_dimensions(&font, &period.id, FONT_SIZE);
+
+    let mut title_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> =
+        ImageBuffer::from_pixel(title_width, title_height * 2, Rgba([255, 255, 255, 255]));
+
+    draw_text_mut(
+        &mut title_buffer,
+        Rgba([0, 0, 0, 255]),
+        0,
+        title_height as i32 / 4,
+        FONT_SIZE,
+        &font,
+        &period.id,
+    );
+
+    DrawnPeriod {
+        title_buffer,
+        period: period.clone(),
+        draw_queue,
+    }
+}
+
+fn draw_representation(
+    representation: &ExpandedRepresentation,
+    content_type: &str,
+    start_ms: u64,
+) -> DrawnRepresentation {
+    let mut representation_queue = DrawQueue::new();
+
+    match &representation.segments {
+        ExpandedSegments::SegmentTemplate { segment_timeline } => {
+            let width = REPRESENTATION_WIDTH;
+
+            let mut i = 0;
+            let mut initial_y = ms_to_pixels(representation.start_ms() - start_ms, SCALE) as i32;
+
+            for segment in &segment_timeline.segments {
+                debug!(
+                    "Draw segment {} {} x {}ms {} @ {}",
+                    i,
+                    initial_y,
+                    segment.segment_duration_ms,
+                    segment.segment_count,
+                    segment.start_ms
+                );
+
+                let segment_end_y =
+                    initial_y + ms_to_pixels(segment.duration_ms, SCALE) as i32 - 1i32;
+
+                // Draw each individual segment
+                for j in 0..segment.segment_count {
+                    let y0 =
+                        initial_y + ms_to_pixels(j * segment.segment_duration_ms, SCALE) as i32;
+
+                    let y1 = initial_y
+                        + ms_to_pixels((j + 1) * segment.segment_duration_ms, SCALE) as i32;
+
+                    let height = y1 - y0;
+
+                    if height < 1 {
+                        debug!("Less than 1px segment");
+                    } else {
+                        let (r, g, b, a) = match content_type {
+                            "audio" => match i % 2 {
+                                0 => Color::AudioSegmentEvent.to_rgba(),
+                                _ => Color::AudioSegmentOdd.to_rgba(),
+                            },
+                            "video" => match i % 2 {
+                                0 => Color::VideoSegmentEven.to_rgba(),
+                                _ => Color::VideoSegmentOdd.to_rgba(),
+                            },
+                            _ => (255, 255, 0, 255),
+                        };
+
+                        representation_queue.queue(DrawTask::FilledRect {
+                            x: 0,
+                            y: y0,
+                            width: width,
+                            height: height as u32,
+                            rgba: (r, g, b, a),
+                        });
+
+                        // start_y = y1;
+                        i += 1;
+                    }
+                }
+
+                initial_y = segment_end_y + 1;
+
+                representation_queue.queue(DrawTask::Line {
+                    start: ((width as f32 / 4.0), segment_end_y as f32),
+                    end: (
+                        width as f32 - 1f32 - (width as f32 / 4.0),
+                        segment_end_y as f32,
+                    ),
+                    rgba: (0, 0, 0, 255),
+                });
+            }
+        }
+        _ => debug!("None segment timeline encountered"),
+    }
+
+    DrawnRepresentation {
+        draw_queue: representation_queue,
+        representation: representation.clone(),
+    }
+}
+
+fn draw_adaptation_set(
+    adaptation_set: &ExpandedAdaptationSet,
+    height: u32,
+    start_ms: u64,
+) -> DrawnAdaptationSet {
+    let mut drawn_representations: Vec<DrawnRepresentation> = vec![];
+
+    // Draw all representations
+    for representation in adaptation_set.representations.iter() {
+        let drawn_representation =
+            draw_representation(representation, &adaptation_set.content_type, start_ms);
+
+        drawn_representations.push(drawn_representation);
+    }
+
+    let mut draw_queue = DrawQueue::new();
+
+    for (index, drawn_representation) in drawn_representations.iter().enumerate() {
+        debug!(
+            "Copying buffer {} {} {}x{}",
+            index as u32 * (REPRESENTATION_WIDTH + REPRESENTATION_PADDING),
+            0,
+            drawn_representation.draw_queue.width(),
+            drawn_representation.draw_queue.height(),
+        );
+
+        draw_queue.queue(DrawTask::Copy {
+            draw_queue: drawn_representation.draw_queue.clone(),
+            x: index as u32 * (REPRESENTATION_WIDTH + REPRESENTATION_PADDING),
+            y: 0,
+        })
+    }
+
+    DrawnAdaptationSet {
+        draw_queue,
+        adaptation_set: adaptation_set.clone(),
     }
 }
 
@@ -370,25 +462,6 @@ fn ms_to_pixels(ms: u64, scale: u32) -> u32 {
 
     // Sum both parts to get the total pixel width
     whole_seconds_pixels + px
-}
-
-fn get_period_height(period: &ExpandedPeriod) -> u32 {
-    debug!(
-        "Calc period height {} {:?} {} - {}",
-        period.period_start_ms,
-        period.period_duration_ms,
-        period.end_ms(),
-        period.start_ms()
-    );
-    let duration_ms = period.end_ms() - period.start_ms();
-
-    let height = ms_to_pixels(duration_ms, SCALE) as u32;
-
-    if period.start_ms() > period.period_start_ms {
-        height + GAP_SIZE as u32
-    } else {
-        height
-    }
 }
 
 fn format_duration(duration_ms: u64) -> String {
@@ -429,7 +502,7 @@ fn format_duration(duration_ms: u64) -> String {
     remaining_ms %= 1000;
 
     if seconds > 0 {
-        result.push_str(&format!("{}.{}ms ", seconds, remaining_ms));
+        result.push_str(&format!("{}.{}s ", seconds, remaining_ms));
     } else if remaining_ms > 0 {
         result.push_str(&format!("{}ms ", remaining_ms));
     }
@@ -485,23 +558,3 @@ fn text_dimensions(font: &impl Font, text: &str, font_size: f32) -> (u32, u32) {
 //         pixel.0[i] = (pixel.0[i] as f32 * (1.0 - alpha) + overlay.0[i] as f32 * alpha) as u8;
 //     }
 // }
-
-fn get_period_width(period: &ExpandedPeriod) -> u32 {
-    let mut width = 0u32;
-
-    for adaptation_set in &period.adaptation_sets {
-        width += 2 * ADAPTATION_SET_PADDING;
-
-        for _representation in &adaptation_set.representations {
-            width += REPRESENTATION_WIDTH + REPRESENTATION_PADDING;
-        }
-
-        width += ADAPTATION_SET_SPACING;
-    }
-
-    // Remove the trailing spacer
-    width -= ADAPTATION_SET_SPACING;
-    width -= REPRESENTATION_PADDING;
-
-    return width;
-}

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="urn:mpeg:dash:schema:mpd:2011 DASH-MPD.xsd"
+  profiles="urn:mpeg:dash:profile:isoff-live:2011" minBufferTime="PT2S" type="static"
+  mediaPresentationDuration="PT68S">
+  <Period id="dai_pod-preroll-ad-1" duration="PT20S">
+    <EventStream schemeIdUri="urn:google:dai:2018" timescale="1000">
+      <Event presentationTime="100" duration="0" id="0" messageData="google_0000000000000000000" />
+      <Event presentationTime="3750" duration="0" id="1" messageData="google_0100000000000000000" />
+      <Event presentationTime="7500" duration="0" id="2" messageData="google_0200000000000000000" />
+      <Event presentationTime="11250" duration="0" id="3" messageData="google_0300000000000000000" />
+      <Event presentationTime="14000" duration="0" id="4" messageData="google_0400000000000000000" />
+    </EventStream>
+    <AdaptationSet id="0" contentType="video" maxWidth="1280" maxHeight="720" frameRate="12800/512"
+      segmentAlignment="true" par="16:9">
+
+      <Representation id="7" bandwidth="712000" codecs="avc1.4d401f" mimeType="video/mp4" sar="1:1"
+        width="640" height="360">
+        <SegmentTemplate timescale="12800" initialization="../ads/asahi/video_712000/init.mp4"
+          media="../ads/asahi/video_712000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="64000" d="25600" r="6" />
+            <S t="243200" d="13824" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation id="8" bandwidth="262000" codecs="avc1.4d401e" mimeType="video/mp4" sar="1:1"
+        width="480" height="270">
+        <SegmentTemplate timescale="12800" initialization="../ads/asahi/video_262000/init.mp4"
+          media="../ads/asahi/video_262000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="89600" d="25600" r="5" />
+            <S t="243200" d="13824" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" segmentAlignment="true">
+      <Representation id="3" bandwidth="127000" codecs="mp4a.40.2" mimeType="audio/mp4"
+        audioSamplingRate="48000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" initialization="../ads/asahi/audio_127000/init.mp4"
+          media="../ads/asahi/audio_127000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="240000" d="96256" r="2" />
+            <S t="528768" d="95232" />
+            <S t="624000" d="96256" r="2" />
+            <S t="912768" d="47104" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation id="4" bandwidth="95000" codecs="mp4a.40.2" mimeType="audio/mp4"
+        audioSamplingRate="48000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" initialization="../ads/asahi/audio_95000/init.mp4"
+          media="../ads/asahi/audio_95000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="240000" d="96256" r="2" />
+            <S t="528768" d="95232" />
+            <S t="624000" d="96256" r="2" />
+            <S t="912768" d="47104" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+  <Period id="dai_pod-preroll-ad-2" start="PT20S" duration="PT17S">
+    <EventStream schemeIdUri="urn:google:dai:2018" timescale="1000">
+      <Event presentationTime="100" duration="0" id="5" messageData="google_1000000000000000000" />
+      <Event presentationTime="3750" duration="0" id="6" messageData="google_1100000000000000000" />
+      <Event presentationTime="7500" duration="0" id="7" messageData="google_1200000000000000000" />
+      <Event presentationTime="11250" duration="0" id="8" messageData="google_1300000000000000000" />
+      <Event presentationTime="14000" duration="0" id="9" messageData="google_1400000000000000000" />
+    </EventStream>
+    <AdaptationSet id="0" contentType="video" maxWidth="1280" maxHeight="720" frameRate="12800/512"
+      segmentAlignment="true" par="16:9">
+
+      <Representation id="7" bandwidth="712000" codecs="avc1.4d401f" mimeType="video/mp4" sar="1:1"
+        width="640" height="360">
+        <SegmentTemplate timescale="12800" initialization="../ads/asahi/video_712000/init.mp4"
+          media="../ads/asahi/video_712000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="25600" d="25600" r="6" />
+            <S t="204800" d="13824" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation id="8" bandwidth="262000" codecs="avc1.4d401e" mimeType="video/mp4" sar="1:1"
+        width="480" height="270">
+        <SegmentTemplate timescale="12800" initialization="../ads/asahi/video_262000/init.mp4"
+          media="../ads/asahi/video_262000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="25600" d="25600" r="6" />
+            <S t="204800" d="13824" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" segmentAlignment="true">
+      <Representation id="3" bandwidth="127000" codecs="mp4a.40.2" mimeType="audio/mp4"
+        audioSamplingRate="48000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" initialization="../ads/asahi/audio_127000/init.mp4"
+          media="../ads/asahi/audio_127000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="96000" d="96256" r="2" />
+            <S t="384768" d="95232" />
+            <S t="480000" d="96256" r="2" />
+            <S t="768768" d="47104" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation id="4" bandwidth="95000" codecs="mp4a.40.2" mimeType="audio/mp4"
+        audioSamplingRate="48000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" initialization="../ads/asahi/audio_95000/init.mp4"
+          media="../ads/asahi/audio_95000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="96000" d="96256" r="2" />
+            <S t="384768" d="95232" />
+            <S t="480000" d="96256" r="2" />
+            <S t="768768" d="47104" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+  <Period id="content-0" start="PT37S" duration="PT28.8S">
+    <AdaptationSet id="0" contentType="video" maxWidth="1280" maxHeight="720" frameRate="12800/512"
+      segmentAlignment="true" par="16:9">
+      <Representation id="2" bandwidth="840000" codecs="avc1.4d401f" mimeType="video/mp4" sar="1:1"
+        width="960" height="540">
+        <SegmentTemplate timescale="12800" initialization="video_840000/init.mp4"
+          media="video_840000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="0" d="24576" r="14" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation id="4" bandwidth="480000" codecs="avc1.4d401f" mimeType="video/mp4" sar="1:1"
+        width="640" height="360">
+        <SegmentTemplate timescale="12800" initialization="video_480000/init.mp4"
+          media="video_480000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="0" d="24576" r="14" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" lang="en" segmentAlignment="true">
+      <Representation id="1" bandwidth="128000" codecs="mp4a.40.2" mimeType="audio/mp4"
+        audioSamplingRate="48000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" initialization="audio_128000/init.mp4"
+          media="audio_128000/$Number$.mp4" startNumber="1">
+          <SegmentTimeline>
+            <S t="0" d="92160" r="14" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" id="fb02ef0d-8a86-48ea-b85c-2a5a006fa31c"
+  profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:com:dashif:dash264" type="static"
+  mediaPresentationDuration="PT12M17.8S" minBufferTime="PT2S">
+  <BaseURL>https://example.com</BaseURL>
+  <Period id="pre-roll-1-ad-1" duration="PT15S">
+    <BaseURL>https://dai.google.com/segments/redirect/c/</BaseURL>
+    <AdaptationSet id="0" contentType="audio">
+      <Representation audioSamplingRate="48000" mimeType="audio/mp4" codecs="mp4a.40.2"
+        id="85585e3c-f1d3-4fd8-b0f0-cdbe3e2641d6" bandwidth="130000">
+        <AudioChannelConfiguration
+          schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <SegmentTemplate timescale="48000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26gir%3Dyes%26lmt%3D1739288568103389%26requiressl%3Dyes%26clen%3D245040%26mime%3Daudio%2Fmp4%26xtags%3Dac%3Daac%3Aaccf%3Dlc%3Aach%3D2%3Aasr%3D48000%3Aatbr%3D128%26mt%3D1742070292%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cacao%2Cctier%2Csource%2Cid%2Citag%2Cgir%2Clmt%2Crequiressl%2Cclen%2Cmime%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIhALhZvcv7HRyXnvH5llNahgQE9zfdD6eA92GQHR4rBYxPAiAUQq1ZGzO_3ytV_JibuvNA6oFrovlzzj2eSukwdzuTvg%3D%3D%26lsparams%3Dmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%26lsig%3DAFVRHeAwRAIgQtI2VJfeMpRYNi4WVXBvNlNrKRSJ5zVYVnkf6wozVK8CIHOAuHOtOcmQIhnCkUG_Kozod0LDdOpP4l2bCt7N0ibx"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26gir%3Dyes%26lmt%3D1739288568103389%26requiressl%3Dyes%26clen%3D245040%26mime%3Daudio%2Fmp4%26xtags%3Dac%3Daac%3Aaccf%3Dlc%3Aach%3D2%3Aasr%3D48000%3Aatbr%3D128%26mt%3D1742070292%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cacao%2Cctier%2Csource%2Cid%2Citag%2Cgir%2Clmt%2Crequiressl%2Cclen%2Cmime%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIhALhZvcv7HRyXnvH5llNahgQE9zfdD6eA92GQHR4rBYxPAiAUQq1ZGzO_3ytV_JibuvNA6oFrovlzzj2eSukwdzuTvg%3D%3D%26lsparams%3Dmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%26lsig%3DAFVRHeAwRAIgQtI2VJfeMpRYNi4WVXBvNlNrKRSJ5zVYVnkf6wozVK8CIHOAuHOtOcmQIhnCkUG_Kozod0LDdOpP4l2bCt7N0ibx">
+          <SegmentTimeline>
+            <S d="479232" />
+            <S d="243712" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet startWithSAP="1" id="1" contentType="video" minFrameRate="25" maxFrameRate="50"
+      segmentAlignment="true">
+      <Representation width="1280" height="720" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.64001f" id="d7ccf55e-4e14-4187-b496-a7b9a0f6b770" bandwidth="2604000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D1280x720%3Avtbr%3D2500%26clen%3D4882605%26gir%3Dyes%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26lmt%3D1739809290658202%26mt%3D1742070292%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Citag%2Cxtags%2Cclen%2Cgir%2Cmime%2Cacao%2Cctier%2Csource%2Cid%2Clmt%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgS7h6du9lTBh1f7WPNnXy2R3NOTHm_Smr4w8nMvgYfBICIALOyGTUG1lINymFTEEGjHUrtb-ldS78raLGJsId5E85%26lsparams%3Dmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%26lsig%3DAFVRHeAwRAIgMRY5cgwXVklNN4pmw8_z2Po1T6TwjZC_eThG4cp4VcACIDd-tIiUDqlvfvYgmw-PZ2Kt7vsql_2iCwFo2qtL3c54"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D1280x720%3Avtbr%3D2500%26clen%3D4882605%26gir%3Dyes%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26lmt%3D1739809290658202%26mt%3D1742070292%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Citag%2Cxtags%2Cclen%2Cgir%2Cmime%2Cacao%2Cctier%2Csource%2Cid%2Clmt%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgS7h6du9lTBh1f7WPNnXy2R3NOTHm_Smr4w8nMvgYfBICIALOyGTUG1lINymFTEEGjHUrtb-ldS78raLGJsId5E85%26lsparams%3Dmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%26lsig%3DAFVRHeAwRAIgMRY5cgwXVklNN4pmw8_z2Po1T6TwjZC_eThG4cp4VcACIDd-tIiUDqlvfvYgmw-PZ2Kt7vsql_2iCwFo2qtL3c54">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="640" height="360" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.64001e" id="1db384c7-63ee-4359-ae70-2cafc7f3bc69" bandwidth="483000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26mime%3Dvideo%2Fmp4%26lmt%3D1739809295202941%26gir%3Dyes%26requiressl%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D640x360%3Avtbr%3D460%26clen%3D906957%26acao%3Dyes%26ctier%3DL%26mt%3D1742070292%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cmime%2Clmt%2Cgir%2Crequiressl%2Csource%2Cid%2Citag%2Cxtags%2Cclen%2Cacao%2Cctier%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgGITCXdlqz4S2-UITGV3BuCx6JeWJLl4Gg38hqW6leh0CIEyBCBxMkd11fNSP60GrMRHONfMYOWRENjKI17j46OIE%26lsparams%3Drms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%26lsig%3DAFVRHeAwRgIhAKUr8PAeKKqk7KnctPUxjn5vopMhElSMZe-2wuvOoYENAiEAzbp_EhnHqgHqt5SY37HgraQISOSTWn7VFr9YqPH6C-Q%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26mime%3Dvideo%2Fmp4%26lmt%3D1739809295202941%26gir%3Dyes%26requiressl%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D640x360%3Avtbr%3D460%26clen%3D906957%26acao%3Dyes%26ctier%3DL%26mt%3D1742070292%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cmime%2Clmt%2Cgir%2Crequiressl%2Csource%2Cid%2Citag%2Cxtags%2Cclen%2Cacao%2Cctier%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgGITCXdlqz4S2-UITGV3BuCx6JeWJLl4Gg38hqW6leh0CIEyBCBxMkd11fNSP60GrMRHONfMYOWRENjKI17j46OIE%26lsparams%3Drms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%26lsig%3DAFVRHeAwRgIhAKUr8PAeKKqk7KnctPUxjn5vopMhElSMZe-2wuvOoYENAiEAzbp_EhnHqgHqt5SY37HgraQISOSTWn7VFr9YqPH6C-Q%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="1280" height="720" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.64001f" id="eb2c3c56-7942-40a0-a5bb-22ec65a62e94" bandwidth="3350000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26itag%3D340%26nc%3D67970281%26lmt%3D1739809289964540%26clen%3D6282699%26acao%3Dyes%26id%3D46a760059ad87461%26mime%3Dvideo%2Fmp4%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D1280x720%3Avtbr%3D3200%26gir%3Dyes%26mt%3D1742070292%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cctier%2Csource%2Citag%2Clmt%2Cclen%2Cacao%2Cid%2Cmime%2Cxtags%2Cgir%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAOB_9yYUK997TYdGltK7KqdnJ192lR5uzFJNUIYWvbTRAiEAsxnNDw0xgt-WvZu6akAIwt0bZhONBz21X3yWIMiNmdE%3D%26lsparams%3Drms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%26lsig%3DAFVRHeAwRQIgA_AfTFWx3BA2fvRbZs_IIKgL3OU_ORcm_a74_y_ZfJECIQDQAtcC3dfP3UjdzSCSmlzVuRuJfPdXuUmhLBTPGQFEww%3D%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26itag%3D340%26nc%3D67970281%26lmt%3D1739809289964540%26clen%3D6282699%26acao%3Dyes%26id%3D46a760059ad87461%26mime%3Dvideo%2Fmp4%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D1280x720%3Avtbr%3D3200%26gir%3Dyes%26mt%3D1742070292%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cctier%2Csource%2Citag%2Clmt%2Cclen%2Cacao%2Cid%2Cmime%2Cxtags%2Cgir%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAOB_9yYUK997TYdGltK7KqdnJ192lR5uzFJNUIYWvbTRAiEAsxnNDw0xgt-WvZu6akAIwt0bZhONBz21X3yWIMiNmdE%3D%26lsparams%3Drms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%26lsig%3DAFVRHeAwRQIgA_AfTFWx3BA2fvRbZs_IIKgL3OU_ORcm_a74_y_ZfJECIQDQAtcC3dfP3UjdzSCSmlzVuRuJfPdXuUmhLBTPGQFEww%3D%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="1280" height="720" frameRate="50" mimeType="video/mp4"
+        codecs="avc1.640020" id="ef57cb33-39f9-4780-97e3-4740daed7bcc" bandwidth="6181000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26acao%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26lmt%3D1739602563610461%26clen%3D11590556%26mime%3Dvideo%2Fmp4%26requiressl%3Dyes%26ctier%3DL%26itag%3D340%26nc%3D67970281%26gir%3Dyes%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1280x720%3Avtbr%3D6500%26mt%3D1742070292%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cacao%2Csource%2Cid%2Clmt%2Cclen%2Cmime%2Crequiressl%2Cctier%2Citag%2Cgir%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAPNuaCQcZJYeiRz4qZYKNSQ-oeHY2M8SroWHEyip2WDDAiEA20lp4LD6OpjyTQ09rAVK5zH3F9OgoIL4FBvjSrh-vb0%3D%26lsparams%3Dms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%26lsig%3DAFVRHeAwRgIhAMsAwJpe0NkWlPyY4q60WcBMzRlUDKY5k40AmJ6mXivWAiEAtECGXt2Lln0CBSXgUOXrj2XsCbHrkSQOwet4v2sx6qk%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26acao%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26lmt%3D1739602563610461%26clen%3D11590556%26mime%3Dvideo%2Fmp4%26requiressl%3Dyes%26ctier%3DL%26itag%3D340%26nc%3D67970281%26gir%3Dyes%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1280x720%3Avtbr%3D6500%26mt%3D1742070292%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Cacao%2Csource%2Cid%2Clmt%2Cclen%2Cmime%2Crequiressl%2Cctier%2Citag%2Cgir%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAPNuaCQcZJYeiRz4qZYKNSQ-oeHY2M8SroWHEyip2WDDAiEA20lp4LD6OpjyTQ09rAVK5zH3F9OgoIL4FBvjSrh-vb0%3D%26lsparams%3Dms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%26lsig%3DAFVRHeAwRgIhAMsAwJpe0NkWlPyY4q60WcBMzRlUDKY5k40AmJ6mXivWAiEAtECGXt2Lln0CBSXgUOXrj2XsCbHrkSQOwet4v2sx6qk%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="480" height="270" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.4d4015" id="4b4c8036-35c8-451c-b63f-edd71fc011bc" bandwidth="272000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dmain%3Avfr%3D25%3Avsz%3D480x270%3Avtbr%3D260%26lmt%3D1739544354778232%26gir%3Dyes%26acao%3Dyes%26ctier%3DL%26mime%3Dvideo%2Fmp4%26clen%3D511363%26mt%3D1742070292%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Csource%2Cid%2Citag%2Cxtags%2Clmt%2Cgir%2Cacao%2Cctier%2Cmime%2Cclen%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAOh041qdahkVGIkTmkVaRpPwxHl8H6MziByaWYzh7xoHAiEAnqEkLya-8S_5q_28qJOUsBjsar-85GzT1igj2faZZkU%3D%26lsparams%3Dmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%26lsig%3DAFVRHeAwRgIhAJ9CNNOPu9Rl_E8swLGZaPvpM3uBf7wcQtBiX18N00cMAiEAiIfZItNZbJa_gDfL35JIo9rxN0r22fSZvAzfqesSYeI%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dmain%3Avfr%3D25%3Avsz%3D480x270%3Avtbr%3D260%26lmt%3D1739544354778232%26gir%3Dyes%26acao%3Dyes%26ctier%3DL%26mime%3Dvideo%2Fmp4%26clen%3D511363%26mt%3D1742070292%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Csource%2Cid%2Citag%2Cxtags%2Clmt%2Cgir%2Cacao%2Cctier%2Cmime%2Cclen%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAOh041qdahkVGIkTmkVaRpPwxHl8H6MziByaWYzh7xoHAiEAnqEkLya-8S_5q_28qJOUsBjsar-85GzT1igj2faZZkU%3D%26lsparams%3Dmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%26lsig%3DAFVRHeAwRgIhAJ9CNNOPu9Rl_E8swLGZaPvpM3uBf7wcQtBiX18N00cMAiEAiIfZItNZbJa_gDfL35JIo9rxN0r22fSZvAzfqesSYeI%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="1920" height="1080" frameRate="50" mimeType="video/mp4"
+        codecs="avc1.64002a" id="d81138ba-7308-43bf-8216-f5901837ffa2" bandwidth="7356000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26lmt%3D1739602525294667%26clen%3D13794313%26gir%3Dyes%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26requiressl%3Dyes%26mime%3Dvideo%2Fmp4%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1920x1080%3Avtbr%3D8000%26mt%3D1742070292%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Clmt%2Cclen%2Cgir%2Cacao%2Cctier%2Csource%2Cid%2Citag%2Crequiressl%2Cmime%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIgcV0FsOBQcg-Db017-QNiUa31qPtnjk1GskCOCeQgRewCIQD9nsgbFIrFqAMy7iyG_Pc0yVSwrK_8wV2CHgQsMYaZVQ%3D%3D%26lsparams%3Dmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%26lsig%3DAFVRHeAwRQIgFYPh7PRcHYvcwmL1gEkM9jsfRnDWYCCdfclvL415f2ECIQC4udoBee0JYiNFp1-pG9lyg0w6f-ft10U_vBShB_PfJg%3D%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26lmt%3D1739602525294667%26clen%3D13794313%26gir%3Dyes%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26id%3D46a760059ad87461%26itag%3D340%26nc%3D67970281%26requiressl%3Dyes%26mime%3Dvideo%2Fmp4%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1920x1080%3Avtbr%3D8000%26mt%3D1742070292%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Clmt%2Cclen%2Cgir%2Cacao%2Cctier%2Csource%2Cid%2Citag%2Crequiressl%2Cmime%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIgcV0FsOBQcg-Db017-QNiUa31qPtnjk1GskCOCeQgRewCIQD9nsgbFIrFqAMy7iyG_Pc0yVSwrK_8wV2CHgQsMYaZVQ%3D%3D%26lsparams%3Dmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%26lsig%3DAFVRHeAwRQIgFYPh7PRcHYvcwmL1gEkM9jsfRnDWYCCdfclvL415f2ECIQC4udoBee0JYiNFp1-pG9lyg0w6f-ft10U_vBShB_PfJg%3D%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="960" height="540" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.64001f" id="afa59cee-ea2e-4914-acd4-f9c97fe26297" bandwidth="1701000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26itag%3D340%26clen%3D3189751%26gir%3Dyes%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26id%3D46a760059ad87461%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D960x540%3Avtbr%3D1600%26lmt%3D1739809295705256%26mt%3D1742070292%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cctier%2Csource%2Citag%2Cclen%2Cgir%2Cmime%2Cacao%2Cid%2Cxtags%2Clmt%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgRyrkYsq1bbaB3UP6owOKHEEF7as4z_D3NxNvnyP2mBQCIC0i6_8nW9vMhK0FKRljpQp8tTz8jtvE1vey9V27SKqt%26lsparams%3Dpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%26lsig%3DAFVRHeAwRgIhAJhpIpv7T7FBQi7wf7U75BUnDwBvYHorDOHKJ9fpPomDAiEA4gFA-hJfW_vjha5b5wBzJQmuY2MVSh2aeTTADvMcw6o%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26itag%3D340%26clen%3D3189751%26gir%3Dyes%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26id%3D46a760059ad87461%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D960x540%3Avtbr%3D1600%26lmt%3D1739809295705256%26mt%3D1742070292%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cctier%2Csource%2Citag%2Cclen%2Cgir%2Cmime%2Cacao%2Cid%2Cxtags%2Clmt%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRAIgRyrkYsq1bbaB3UP6owOKHEEF7as4z_D3NxNvnyP2mBQCIC0i6_8nW9vMhK0FKRljpQp8tTz8jtvE1vey9V27SKqt%26lsparams%3Dpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%26lsig%3DAFVRHeAwRgIhAJhpIpv7T7FBQi7wf7U75BUnDwBvYHorDOHKJ9fpPomDAiEA4gFA-hJfW_vjha5b5wBzJQmuY2MVSh2aeTTADvMcw6o%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="1280" height="720" frameRate="50" mimeType="video/mp4"
+        codecs="avc1.640020" id="fd96f9ca-eac1-44cc-af39-643ce59d41da" bandwidth="4596000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26id%3D46a760059ad87461%26itag%3D340%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1280x720%3Avtbr%3D4400%26lmt%3D1739602558310894%26clen%3D8617858%26gir%3Dyes%26mt%3D1742070292%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cid%2Citag%2Cmime%2Cacao%2Cctier%2Csource%2Cxtags%2Clmt%2Cclen%2Cgir%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIgAMsSdEEJoFD7V-4GmLleziT6VS_yLYkzCc9i1Q2VGdQCIQD2pkJIS4ta4h73p_aIpd84W1Vah8nG-Kg5J-z_rig41Q%3D%3D%26lsparams%3Dmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%26lsig%3DAFVRHeAwRQIhAKarETVPrZWAH7YEizALuaVYWlmlwGwW4avETgw8Jdm9AiACfIYbIBBJ-jfU0bFPGXsW3kwqoF1-sgZVGTP7NjgdRg%3D%3D"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26requiressl%3Dyes%26id%3D46a760059ad87461%26itag%3D340%26mime%3Dvideo%2Fmp4%26acao%3Dyes%26ctier%3DL%26source%3Ddclk_video_ads%26nc%3D67970281%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D50%3Avsz%3D1280x720%3Avtbr%3D4400%26lmt%3D1739602558310894%26clen%3D8617858%26gir%3Dyes%26mt%3D1742070292%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Crequiressl%2Cid%2Citag%2Cmime%2Cacao%2Cctier%2Csource%2Cxtags%2Clmt%2Cclen%2Cgir%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRQIgAMsSdEEJoFD7V-4GmLleziT6VS_yLYkzCc9i1Q2VGdQCIQD2pkJIS4ta4h73p_aIpd84W1Vah8nG-Kg5J-z_rig41Q%3D%3D%26lsparams%3Dmet%2Cmv%2Cmvi%2Cpl%2Cmh%2Cmm%2Cmn%2Cms%2Crms%26lsig%3DAFVRHeAwRQIhAKarETVPrZWAH7YEizALuaVYWlmlwGwW4avETgw8Jdm9AiACfIYbIBBJ-jfU0bFPGXsW3kwqoF1-sgZVGTP7NjgdRg%3D%3D">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+      <Representation width="960" height="540" frameRate="25" mimeType="video/mp4"
+        codecs="avc1.64001f" id="1c74d8a7-096f-4d1f-b62e-b7ff7a4cadfa" bandwidth="1054000">
+        <SegmentTemplate timescale="90000" startNumber="1"
+          media="$Number$.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26lmt%3D1739809295014197%26ctier%3DL%26source%3Ddclk_video_ads%26nc%3D67970281%26mime%3Dvideo%2Fmp4%26clen%3D1977112%26gir%3Dyes%26requiressl%3Dyes%26acao%3Dyes%26id%3D46a760059ad87461%26itag%3D340%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D960x540%3Avtbr%3D1000%26mt%3D1742070292%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Clmt%2Cctier%2Csource%2Cmime%2Cclen%2Cgir%2Crequiressl%2Cacao%2Cid%2Citag%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAL66j4e5WP6hCKfyPyAALNlA-g3A5oQ0lf1L3xpxUo0cAiEAo-HerLh7FqvjA6vWrlkYrVUkh30BC5Efi23KXLzYNWg%3D%26lsparams%3Dmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%26lsig%3DAFVRHeAwRAIgFGfd7S4WMCGI4TlcsW8zGB4Q1Twg4fImLS0UpWW6_3MCID24krjBpGIzSjbAWskhB1E_iINMACspD8nY2sxs5yq3"
+          initialization="init.mp4?orig=https%3A%2F%2Fr3---sn-cn3tc-ajtr.googlevideo.com%2Fvideoplayback%3Fexpire%3D1742157160%26ei%3D6OPVZ4v_IMbQi9oPpNWDqAQ%26ip%3D90.208.182.144%26lmt%3D1739809295014197%26ctier%3DL%26source%3Ddclk_video_ads%26nc%3D67970281%26mime%3Dvideo%2Fmp4%26clen%3D1977112%26gir%3Dyes%26requiressl%3Dyes%26acao%3Dyes%26id%3D46a760059ad87461%26itag%3D340%26xtags%3Dvc%3Davc%3Avccf%3Dhigh%3Avfr%3D25%3Avsz%3D960x540%3Avtbr%3D1000%26mt%3D1742070292%26mm%3D31%26mn%3Dsn-cn3tc-ajtr%26ms%3Dau%26rms%3Dau%2Cau%26met%3D1742070760%2C%26mv%3Dm%26mvi%3D3%26pl%3D23%26mh%3D5O%26rqh%3D1%26susc%3Ddvc%26xpc%3DEghovf3BOnoBAQ%3D%3D%26sparams%3Dexpire%2Cei%2Cip%2Clmt%2Cctier%2Csource%2Cmime%2Cclen%2Cgir%2Crequiressl%2Cacao%2Cid%2Citag%2Cxtags%2Crqh%2Csusc%2Cxpc%26sig%3DAJfQdSswRgIhAL66j4e5WP6hCKfyPyAALNlA-g3A5oQ0lf1L3xpxUo0cAiEAo-HerLh7FqvjA6vWrlkYrVUkh30BC5Efi23KXLzYNWg%3D%26lsparams%3Dmm%2Cmn%2Cms%2Crms%2Cmet%2Cmv%2Cmvi%2Cpl%2Cmh%26lsig%3DAFVRHeAwRAIgFGfd7S4WMCGI4TlcsW8zGB4Q1Twg4fImLS0UpWW6_3MCID24krjBpGIzSjbAWskhB1E_iINMACspD8nY2sxs5yq3">
+          <SegmentTimeline>
+            <S d="450000" r="2" />
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+  <Period id="e18925bb-cbfb-40bc-a543-c0e27aebd7a3" duration="PT12M2.8S">
+    <AdaptationSet mimeType="video/mp4" par="16:9" segmentAlignment="true">
+      <ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc"
+        cenc:default_KID="11a60b66-011a-54e2-a2f8-7808d4e02f67" xmlns:cenc="urn:mpeg:cenc:2013" />
+      <ContentProtection schemeIdUri="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed">
+        <cenc:pssh xmlns:cenc="urn:mpeg:cenc:2013">
+          AAAAMnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAABISEBGmC2YBGlTiovh4CNTgL2c=</cenc:pssh>
+      </ContentProtection>
+      <ContentProtection schemeIdUri="urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95">
+        <cenc:pssh xmlns:cenc="urn:mpeg:cenc:2013">
+          AAAC3HBzc2gAAAAAmgTweZhAQoarkuZb4IhflQAAAry8AgAAAQABALICPABXAFIATQBIAEUAQQBEAEUAUgAgAHgAbQBsAG4AcwA9ACIAaAB0AHQAcAA6AC8ALwBzAGMAaABlAG0AYQBzAC4AbQBpAGMAcgBvAHMAbwBmAHQALgBjAG8AbQAvAEQAUgBNAC8AMgAwADAANwAvADAAMwAvAFAAbABhAHkAUgBlAGEAZAB5AEgAZQBhAGQAZQByACIAIAB2AGUAcgBzAGkAbwBuAD0AIgA0AC4AMAAuADAALgAwACIAPgA8AEQAQQBUAEEAPgA8AFAAUgBPAFQARQBDAFQASQBOAEYATwA+ADwASwBFAFkATABFAE4APgAxADYAPAAvAEsARQBZAEwARQBOAD4APABBAEwARwBJAEQAPgBBAEUAUwBDAFQAUgA8AC8AQQBMAEcASQBEAD4APAAvAFAAUgBPAFQARQBDAFQASQBOAEYATwA+ADwASwBJAEQAPgBaAGcAdQBtAEUAUgBvAEIANABsAFMAaQArAEgAZwBJADEATwBBAHYAWgB3AD0APQA8AC8ASwBJAEQAPgA8AEMASABFAEMASwBTAFUATQA+AC8AVgAxAGkASgAzAGUARgBtAEsATQA9ADwALwBDAEgARQBDAEsAUwBVAE0APgA8AEwAQQBfAFUAUgBMAD4AaAB0AHQAcABzADoALwAvAHAAbABhAHkAcgBlAGEAZAB5ADMALgBlAG4AdABpAHQAbABlAG0AZQBuAHQALgB0AGgAZQBwAGwAYQB0AGYAbwByAG0ALgBlAHUALwBwAGwAYQB5AHIAZQBhAGQAeQAvAHIAaQBnAGgAdABzAG0AYQBuAGEAZwBlAHIALgBhAHMAbQB4ADwALwBMAEEAXwBVAFIATAA+ADwALwBEAEEAVABBAD4APAAvAFcAUgBNAEgARQBBAEQARQBSAD4A</cenc:pssh>
+        <pro xmlns="urn:microsoft:playready">
+          vAIAAAEAAQCyAjwAVwBSAE0ASABFAEEARABFAFIAIAB4AG0AbABuAHMAPQAiAGgAdAB0AHAAOgAvAC8AcwBjAGgAZQBtAGEAcwAuAG0AaQBjAHIAbwBzAG8AZgB0AC4AYwBvAG0ALwBEAFIATQAvADIAMAAwADcALwAwADMALwBQAGwAYQB5AFIAZQBhAGQAeQBIAGUAYQBkAGUAcgAiACAAdgBlAHIAcwBpAG8AbgA9ACIANAAuADAALgAwAC4AMAAiAD4APABEAEEAVABBAD4APABQAFIATwBUAEUAQwBUAEkATgBGAE8APgA8AEsARQBZAEwARQBOAD4AMQA2ADwALwBLAEUAWQBMAEUATgA+ADwAQQBMAEcASQBEAD4AQQBFAFMAQwBUAFIAPAAvAEEATABHAEkARAA+ADwALwBQAFIATwBUAEUAQwBUAEkATgBGAE8APgA8AEsASQBEAD4AWgBnAHUAbQBFAFIAbwBCADQAbABTAGkAKwBIAGcASQAxAE8AQQB2AFoAdwA9AD0APAAvAEsASQBEAD4APABDAEgARQBDAEsAUwBVAE0APgAvAFYAMQBpAEoAMwBlAEYAbQBLAE0APQA8AC8AQwBIAEUAQwBLAFMAVQBNAD4APABMAEEAXwBVAFIATAA+AGgAdAB0AHAAcwA6AC8ALwBwAGwAYQB5AHIAZQBhAGQAeQAzAC4AZQBuAHQAaQB0AGwAZQBtAGUAbgB0AC4AdABoAGUAcABsAGEAdABmAG8AcgBtAC4AZQB1AC8AcABsAGEAeQByAGUAYQBkAHkALwByAGkAZwBoAHQAcwBtAGEAbgBhAGcAZQByAC4AYQBzAG0AeAA8AC8ATABBAF8AVQBSAEwAPgA8AC8ARABBAFQAQQA+ADwALwBXAFIATQBIAEUAQQBEAEUAUgA+AA==</pro>
+      </ContentProtection>
+      <Representation width="960" height="540" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="afa59cee-ea2e-4914-acd4-f9c97fe26297" bandwidth="1500000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/1500000/seg_dash_$Number$.m4v"
+          initialization="../../h264/1500000/init_dash.m4v" />
+      </Representation>
+      <Representation width="1280" height="720" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="eb2c3c56-7942-40a0-a5bb-22ec65a62e94" bandwidth="3000000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/3000000/seg_dash_$Number$.m4v"
+          initialization="../../h264/3000000/init_dash.m4v" />
+      </Representation>
+      <Representation width="1280" height="720" sar="1:1" frameRate="50" codecs="avc1.640020"
+        id="ef57cb33-39f9-4780-97e3-4740daed7bcc" bandwidth="6500000">
+        <SegmentTemplate timescale="50000" duration="96000" startNumber="0"
+          media="../../h264/6500000/seg_dash_$Number$.m4v"
+          initialization="../../h264/6500000/init_dash.m4v" />
+      </Representation>
+      <Representation width="1280" height="720" sar="1:1" frameRate="50" codecs="avc1.640020"
+        id="fd96f9ca-eac1-44cc-af39-643ce59d41da" bandwidth="4400000">
+        <SegmentTemplate timescale="50000" duration="96000" startNumber="0"
+          media="../../h264/4400000/seg_dash_$Number$.m4v"
+          initialization="../../h264/4400000/init_dash.m4v" />
+      </Representation>
+      <Representation width="480" height="270" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="4b4c8036-35c8-451c-b63f-edd71fc011bc" bandwidth="288000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/288000/seg_dash_$Number$.m4v"
+          initialization="../../h264/288000/init_dash.m4v" />
+      </Representation>
+      <Representation width="1920" height="1080" sar="1:1" frameRate="50" codecs="avc1.64002A"
+        id="d81138ba-7308-43bf-8216-f5901837ffa2" bandwidth="8000000">
+        <SegmentTemplate timescale="50000" duration="96000" startNumber="0"
+          media="../../h264/8000000/seg_dash_$Number$.m4v"
+          initialization="../../h264/8000000/init_dash.m4v" />
+      </Representation>
+      <Representation width="1280" height="720" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="d7ccf55e-4e14-4187-b496-a7b9a0f6b770" bandwidth="2300000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/2300000/seg_dash_$Number$.m4v"
+          initialization="../../h264/2300000/init_dash.m4v" />
+      </Representation>
+      <Representation width="640" height="360" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="1db384c7-63ee-4359-ae70-2cafc7f3bc69" bandwidth="480000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/480000/seg_dash_$Number$.m4v"
+          initialization="../../h264/480000/init_dash.m4v" />
+      </Representation>
+      <Representation width="960" height="540" sar="1:1" frameRate="25" codecs="avc1.64001F"
+        id="1c74d8a7-096f-4d1f-b62e-b7ff7a4cadfa" bandwidth="840000">
+        <SegmentTemplate timescale="25000" duration="48000" startNumber="0"
+          media="../../h264/840000/seg_dash_$Number$.m4v"
+          initialization="../../h264/840000/init_dash.m4v" />
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet mimeType="audio/mp4" segmentAlignment="true">
+      <AudioChannelConfiguration
+        schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+      <ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc"
+        cenc:default_KID="11a60b66-011a-54e2-a2f8-7808d4e02f67" xmlns:cenc="urn:mpeg:cenc:2013" />
+      <ContentProtection schemeIdUri="urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed">
+        <cenc:pssh xmlns:cenc="urn:mpeg:cenc:2013">
+          AAAAMnBzc2gAAAAA7e+LqXnWSs6jyCfc1R0h7QAAABISEBGmC2YBGlTiovh4CNTgL2c=</cenc:pssh>
+      </ContentProtection>
+      <ContentProtection schemeIdUri="urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95">
+        <cenc:pssh xmlns:cenc="urn:mpeg:cenc:2013">
+          AAAC3HBzc2gAAAAAmgTweZhAQoarkuZb4IhflQAAAry8AgAAAQABALICPABXAFIATQBIAEUAQQBEAEUAUgAgAHgAbQBsAG4AcwA9ACIAaAB0AHQAcAA6AC8ALwBzAGMAaABlAG0AYQBzAC4AbQBpAGMAcgBvAHMAbwBmAHQALgBjAG8AbQAvAEQAUgBNAC8AMgAwADAANwAvADAAMwAvAFAAbABhAHkAUgBlAGEAZAB5AEgAZQBhAGQAZQByACIAIAB2AGUAcgBzAGkAbwBuAD0AIgA0AC4AMAAuADAALgAwACIAPgA8AEQAQQBUAEEAPgA8AFAAUgBPAFQARQBDAFQASQBOAEYATwA+ADwASwBFAFkATABFAE4APgAxADYAPAAvAEsARQBZAEwARQBOAD4APABBAEwARwBJAEQAPgBBAEUAUwBDAFQAUgA8AC8AQQBMAEcASQBEAD4APAAvAFAAUgBPAFQARQBDAFQASQBOAEYATwA+ADwASwBJAEQAPgBaAGcAdQBtAEUAUgBvAEIANABsAFMAaQArAEgAZwBJADEATwBBAHYAWgB3AD0APQA8AC8ASwBJAEQAPgA8AEMASABFAEMASwBTAFUATQA+AC8AVgAxAGkASgAzAGUARgBtAEsATQA9ADwALwBDAEgARQBDAEsAUwBVAE0APgA8AEwAQQBfAFUAUgBMAD4AaAB0AHQAcABzADoALwAvAHAAbABhAHkAcgBlAGEAZAB5ADMALgBlAG4AdABpAHQAbABlAG0AZQBuAHQALgB0AGgAZQBwAGwAYQB0AGYAbwByAG0ALgBlAHUALwBwAGwAYQB5AHIAZQBhAGQAeQAvAHIAaQBnAGgAdABzAG0AYQBuAGEAZwBlAHIALgBhAHMAbQB4ADwALwBMAEEAXwBVAFIATAA+ADwALwBEAEEAVABBAD4APAAvAFcAUgBNAEgARQBBAEQARQBSAD4A</cenc:pssh>
+        <pro xmlns="urn:microsoft:playready">
+          vAIAAAEAAQCyAjwAVwBSAE0ASABFAEEARABFAFIAIAB4AG0AbABuAHMAPQAiAGgAdAB0AHAAOgAvAC8AcwBjAGgAZQBtAGEAcwAuAG0AaQBjAHIAbwBzAG8AZgB0AC4AYwBvAG0ALwBEAFIATQAvADIAMAAwADcALwAwADMALwBQAGwAYQB5AFIAZQBhAGQAeQBIAGUAYQBkAGUAcgAiACAAdgBlAHIAcwBpAG8AbgA9ACIANAAuADAALgAwAC4AMAAiAD4APABEAEEAVABBAD4APABQAFIATwBUAEUAQwBUAEkATgBGAE8APgA8AEsARQBZAEwARQBOAD4AMQA2ADwALwBLAEUAWQBMAEUATgA+ADwAQQBMAEcASQBEAD4AQQBFAFMAQwBUAFIAPAAvAEEATABHAEkARAA+ADwALwBQAFIATwBUAEUAQwBUAEkATgBGAE8APgA8AEsASQBEAD4AWgBnAHUAbQBFAFIAbwBCADQAbABTAGkAKwBIAGcASQAxAE8AQQB2AFoAdwA9AD0APAAvAEsASQBEAD4APABDAEgARQBDAEsAUwBVAE0APgAvAFYAMQBpAEoAMwBlAEYAbQBLAE0APQA8AC8AQwBIAEUAQwBLAFMAVQBNAD4APABMAEEAXwBVAFIATAA+AGgAdAB0AHAAcwA6AC8ALwBwAGwAYQB5AHIAZQBhAGQAeQAzAC4AZQBuAHQAaQB0AGwAZQBtAGUAbgB0AC4AdABoAGUAcABsAGEAdABmAG8AcgBtAC4AZQB1AC8AcABsAGEAeQByAGUAYQBkAHkALwByAGkAZwBoAHQAcwBtAGEAbgBhAGcAZQByAC4AYQBzAG0AeAA8AC8ATABBAF8AVQBSAEwAPgA8AC8ARABBAFQAQQA+ADwALwBXAFIATQBIAEUAQQBEAEUAUgA+AA==</pro>
+      </ContentProtection>
+      <Representation audioSamplingRate="48000" codecs="mp4a.40.2"
+        id="85585e3c-f1d3-4fd8-b0f0-cdbe3e2641d6" bandwidth="128000">
+        <SegmentTemplate timescale="48000" duration="92160" startNumber="0"
+          media="../../aac/128000/seg_dash_$Number$.m4a"
+          initialization="../../aac/128000/init_dash.m4a" />
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>

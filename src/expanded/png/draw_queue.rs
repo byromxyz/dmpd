@@ -1,5 +1,5 @@
 use ab_glyph::FontRef;
-use image::{ImageBuffer, Rgba};
+use image::{ImageBuffer, Rgba, RgbaImage};
 use imageproc::{
     drawing::{draw_filled_rect_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut},
     rect::Rect,
@@ -7,7 +7,6 @@ use imageproc::{
 use serde::Serialize;
 
 use crate::util::error::DrawError;
-use image::GenericImage;
 
 /// Define a structure to hold a queue of draw operations
 #[derive(Debug, Clone, Serialize)]
@@ -114,6 +113,38 @@ pub enum DrawTask {
     },
 }
 
+fn blend_pixel(base: &mut Rgba<u8>, overlay: Rgba<u8>) {
+    let [r_o, g_o, b_o, a_o] = overlay.0;
+    let alpha = a_o as f32 / 255.0;
+
+    if a_o == 0 {
+        return; // nothing to blend
+    }
+
+    let [r_b, g_b, b_b, a_b] = base.0;
+    let alpha_b = a_b as f32 / 255.0;
+
+    let out_alpha = alpha + alpha_b * (1.0 - alpha);
+    let r = ((r_o as f32 * alpha + r_b as f32 * alpha_b * (1.0 - alpha)) / out_alpha).round() as u8;
+    let g = ((g_o as f32 * alpha + g_b as f32 * alpha_b * (1.0 - alpha)) / out_alpha).round() as u8;
+    let b = ((b_o as f32 * alpha + b_b as f32 * alpha_b * (1.0 - alpha)) / out_alpha).round() as u8;
+    let a = (out_alpha * 255.0).round() as u8;
+
+    *base = Rgba([r, g, b, a]);
+}
+
+/// An alternative to copy_from which respects alpha channels
+fn blend_images(dest: &mut RgbaImage, src: &RgbaImage, offset_x: u32, offset_y: u32) {
+    for (x, y, overlay_pixel) in src.enumerate_pixels() {
+        let dx = x + offset_x;
+        let dy = y + offset_y;
+        if dx < dest.width() && dy < dest.height() {
+            let base_pixel = dest.get_pixel_mut(dx, dy);
+            blend_pixel(base_pixel, *overlay_pixel);
+        }
+    }
+}
+
 /// Holds a queue of operations to be performed. Useful for delaying some draw operations to ensure they are placed at the correct z-index.
 impl DrawQueue {
     // Create a new, empty draw queue
@@ -129,7 +160,7 @@ impl DrawQueue {
     // Execute all operations in the queue with a blank buffer
     pub fn execute(&self) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
         let buffer: ImageBuffer<Rgba<u8>, Vec<u8>> =
-            ImageBuffer::from_pixel(self.width(), self.height(), Rgba([255, 255, 255, 255]));
+            ImageBuffer::from_pixel(self.width(), self.height(), Rgba([0, 0, 0, 0]));
 
         self.execute_with_buffer(buffer)
     }
@@ -201,12 +232,13 @@ impl DrawQueue {
                     draw_line_segment_mut(&mut buffer, *start, *end, color);
                 }
                 DrawTask::Copy { draw_queue, x, y } => {
-                    buffer
-                        .copy_from(&draw_queue.execute(), *x, *y)
-                        .unwrap_or_else(|err| {
-                            eprintln!("Unable to copy drawing: {:?}", err);
-                            panic!("Unable to copy drawing");
-                        });
+                    // buffer
+                    //     .copy_from(&draw_queue.execute(), *x, *y)
+                    //     .unwrap_or_else(|err| {
+                    //         eprintln!("Unable to copy drawing: {:?}", err);
+                    //         panic!("Unable to copy drawing");
+                    //     });
+                    blend_images(&mut buffer, &draw_queue.execute(), *x, *y);
                 }
             }
         }

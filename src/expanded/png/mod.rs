@@ -103,7 +103,7 @@ impl ExpandedMpd {
             });
 
             draw_queue.queue(DrawTask::Text {
-                x: x_position as i32,
+                x: x_position as i32 + PERIOD_TITLE_X_SPACING as i32,
                 y: y_position as i32 as i32,
                 scale: FONT_SIZE,
                 rgba: (0, 0, 0, 255),

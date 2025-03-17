@@ -7,6 +7,7 @@ use crate::{
 };
 
 use super::{ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
+use std::time::Duration;
 
 fn get_period_start_ms(current: &Period, prev_end_ms: u64) -> u64 {
     current
@@ -20,6 +21,7 @@ fn get_period_duration_ms(
     next: Option<&Period>,
     start_ms: u64,
     is_dynamic: bool,
+    media_presentation_duration: Option<Duration>,
 ) -> u64 {
     if let Some(duration) = current.duration {
         return duration.as_millis() as u64;
@@ -38,6 +40,12 @@ fn get_period_duration_ms(
         let now = Utc::now();
 
         return now.timestamp_millis() as u64 - start_ms;
+    } else {
+        let mpd_duration_ms = media_presentation_duration
+            .expect("Static manifest without mediaPresentationDuration")
+            .as_millis();
+
+        return mpd_duration_ms as u64 - start_ms;
     }
 
     panic!("Unable to parse period duration");
@@ -55,7 +63,13 @@ impl ExpandedMpd {
             let is_dynamic = mpd.mpdtype.as_deref() == Some("dynamic");
 
             let period_start_ms = get_period_start_ms(p, previous_period_end_ms);
-            let period_duration_ms = get_period_duration_ms(p, next, period_start_ms, is_dynamic);
+            let period_duration_ms = get_period_duration_ms(
+                p,
+                next,
+                period_start_ms,
+                is_dynamic,
+                mpd.mediaPresentationDuration,
+            );
             let period_end_ms = period_start_ms + period_duration_ms;
 
             let period_id = p.id.clone().unwrap_or("No ID".to_owned());

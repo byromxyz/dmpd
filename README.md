@@ -7,4 +7,4 @@ Accepts an MPD file and generates PNG and markdown (TODO) descriptions of the ma
 
 ## Example
 
-![manifest](./example.png)
+![manifest](./examples/5-multi-period.png)

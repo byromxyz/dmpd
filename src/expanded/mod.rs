@@ -19,7 +19,7 @@ impl ExpandedMpd {
     pub fn start_timestamp_ms(&self) -> u64 {
         let first_period = self.periods.first().expect("No periods");
 
-        let start_timestamp = first_period.start_ms + first_period.start_ms();
+        let start_timestamp = first_period.mpd_start_ms + first_period.start_ms();
 
         start_timestamp
     }
@@ -27,7 +27,7 @@ impl ExpandedMpd {
     pub fn end_timestamp_ms(&self) -> u64 {
         let last_period = self.periods.iter().last().expect("No periods");
 
-        let end_timestamp = last_period.start_ms + last_period.end_ms();
+        let end_timestamp = last_period.mpd_start_ms + last_period.end_ms();
 
         end_timestamp
     }
@@ -35,16 +35,14 @@ impl ExpandedMpd {
 
 impl Expanded for ExpandedMpd {
     fn start_ms(&self) -> u64 {
-        self.periods
-            .first()
-            .expect("Manifest with no periods")
-            .start_ms()
+        let first_period = self.periods.first().expect("Manifest with no periods");
+
+        first_period.mpd_start_ms + first_period.start_ms()
     }
     fn end_ms(&self) -> u64 {
-        self.periods
-            .last()
-            .expect("Manifest with no periods")
-            .end_ms()
+        let last_period = self.periods.last().expect("Manifest with no periods");
+
+        last_period.mpd_start_ms + last_period.end_ms()
     }
 }
 
@@ -52,8 +50,8 @@ impl Expanded for ExpandedMpd {
 #[allow(dead_code)]
 pub struct ExpandedPeriod {
     pub adaptation_sets: Vec<ExpandedAdaptationSet>,
-    pub start_ms: u64,
-    pub end_ms: u64,
+    pub mpd_start_ms: u64,
+    pub mpd_end_ms: u64,
     pub period_duration_ms: u64,
     pub id: String,
 }

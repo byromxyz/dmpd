@@ -98,9 +98,11 @@ impl ExpandedMpd {
                 let content_type = match adaptation.contentType {
                     Some(ref s) if s == "audio" => "audio",
                     Some(ref s) if s == "video" => "video",
+                    Some(ref s) if s == "text" => "text",
                     _ => match adaptation.mimeType {
                         Some(ref s) if s.contains("video") => "video",
                         Some(ref s) if s.contains("audio") => "audio",
+                        Some(ref s) if s.contains("application") => "text",
                         _ => "unknown",
                     },
                 };
@@ -136,8 +138,8 @@ impl ExpandedMpd {
             }
 
             let period = ExpandedPeriod {
-                start_ms: period_start_ms,
-                end_ms: period_end_ms,
+                mpd_start_ms: period_start_ms,
+                mpd_end_ms: period_end_ms,
                 period_duration_ms,
                 adaptation_sets,
                 id: period_id,

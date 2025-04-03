@@ -47,3 +47,24 @@ pub fn describe_representation(
         _ => "Unknown contentType".to_owned(),
     }
 }
+
+pub fn parse_ms_duration(ms_total: u64) -> String {
+    let ms = ms_total % 1000;
+
+    let seconds_total = (ms_total - ms) / 1000;
+    let seconds = seconds_total % 60;
+
+    let minutes_total = (seconds_total - seconds) / 60;
+    let minutes = minutes_total % 60;
+
+    let hours_total = (minutes_total - minutes) / 60;
+
+    if hours_total > 0 {
+        format!(
+            "{:02}hrs {:02}m {:02}.{:03}s",
+            hours_total, minutes, seconds, ms
+        )
+    } else {
+        format!("{:02}m {:02}.{:03}s", minutes, seconds, ms)
+    }
+}

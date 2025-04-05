@@ -368,14 +368,14 @@ fn draw_representation(
                     format_duration(representation.start_ms() - period_start_ms)
                 );
 
-                // representation_queue.queue(DrawTask::FilledRect {
-                //     x: 0,
-                //     y: 0,
-                //     width: width,
-                //     height: initial_y as u32,
-                //     rgba: (200, 200, 200, 255),
-                //     hatch: Some((150, 150, 150, 255)),
-                // });
+                representation_queue.queue(DrawTask::FilledRect {
+                    x: 0,
+                    y: 0,
+                    width: width,
+                    height: initial_y as u32,
+                    rgba: (200, 200, 200, 255),
+                    hatch: Some((150, 150, 150, 255)),
+                });
             }
 
             for segment in &segment_timeline.segments {
@@ -443,14 +443,14 @@ fn draw_representation(
                     format_duration(period_end_ms - representation.end_ms())
                 );
 
-                // representation_queue.queue(DrawTask::FilledRect {
-                //     x: 0,
-                //     y: initial_y,
-                //     width: width,
-                //     height: ms_to_pixels(period_end_ms - representation.end_ms(), config.scale),
-                //     rgba: (200, 200, 200, 255),
-                //     hatch: Some((150, 150, 150, 255)),
-                // });
+                representation_queue.queue(DrawTask::FilledRect {
+                    x: 0,
+                    y: initial_y,
+                    width: width,
+                    height: ms_to_pixels(period_end_ms - representation.end_ms(), config.scale),
+                    rgba: (200, 200, 200, 255),
+                    hatch: Some((150, 150, 150, 255)),
+                });
             }
         }
         _ => warn!("None segment timeline encountered"),

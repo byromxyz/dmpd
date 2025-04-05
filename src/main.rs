@@ -214,7 +214,7 @@ fn handle_mpd(filename: &str, args: &Args) -> Result<(), AppError> {
             ) {
                 let new_config = Config {
                     from_ms: Some(timestamp),
-                    to_ms: Some((timestamp + config.max_duration_ms)),
+                    to_ms: Some(timestamp + config.max_duration_ms),
                     ..config
                 };
 

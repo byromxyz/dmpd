@@ -8,7 +8,7 @@ use imageproc::{
 };
 use serde::Serialize;
 
-use crate::util::{draw, error::DrawError};
+use crate::util::{draw::text_dimensions, error::DrawError};
 
 /// Define a structure to hold a queue of draw operations
 #[derive(Debug, Clone, Serialize)]
@@ -18,6 +18,9 @@ pub struct DrawQueue {
 
 impl DrawQueue {
     pub fn width(&self) -> u32 {
+        let font = FontRef::try_from_slice(include_bytes!("../../../fonts/NimbusSanL-Reg.otf"))
+            .expect(&DrawError::CannotCreateFont.describe());
+
         self.queue
             .iter()
             .map(|task| match task {
@@ -30,8 +33,10 @@ impl DrawQueue {
                 DrawTask::HollowRect { x, width, .. } => {
                     return (*x + *width as i32) as u32;
                 }
-                DrawTask::Text { x, width, .. } => {
-                    return (*x + *width as i32) as u32;
+                DrawTask::Text { x, text, scale, .. } => {
+                    let (width, _) = text_dimensions(&font, text, *scale);
+
+                    return (*x + width as i32) as u32;
                 }
                 DrawTask::Copy {
                     draw_queue,
@@ -46,6 +51,9 @@ impl DrawQueue {
     }
 
     pub fn height(&self) -> u32 {
+        let font = FontRef::try_from_slice(include_bytes!("../../../fonts/NimbusSanL-Reg.otf"))
+            .expect(&DrawError::CannotCreateFont.describe());
+
         self.queue
             .iter()
             .map(|task| match task {
@@ -58,8 +66,10 @@ impl DrawQueue {
                 DrawTask::HollowRect { y, height, .. } => {
                     return (*y + *height as i32) as u32;
                 }
-                DrawTask::Text { y, height, .. } => {
-                    return (*y + *height as i32) as u32;
+                DrawTask::Text { y, text, scale, .. } => {
+                    let (_, height) = text_dimensions(&font, text, *scale);
+
+                    return (*y + height as i32) as u32;
                 }
                 DrawTask::Copy {
                     draw_queue,
@@ -102,8 +112,6 @@ pub enum DrawTask {
         scale: f32,
         rgba: (u8, u8, u8, u8),
         text: String,
-        width: u32,
-        height: u32,
     },
     Line {
         start: (f32, f32),
@@ -181,6 +189,9 @@ impl DrawQueue {
         (x_min, y_min): (i32, i32), //
         (x_max, y_max): (i32, i32), //
     ) -> DrawQueue {
+        let font = FontRef::try_from_slice(include_bytes!("../../../fonts/NimbusSanL-Reg.otf"))
+            .expect(&DrawError::CannotCreateFont.describe());
+
         let mut new_queue = DrawQueue::new();
 
         for task in &self.queue {
@@ -287,13 +298,13 @@ impl DrawQueue {
                     scale,
                     rgba,
                     text,
-                    width,
-                    height,
                 } => {
+                    let (width, height) = text_dimensions(&font, text, *scale);
+
                     if *y < y_min || *x < x_min {
                         continue;
                     } // Do not draw if it starts before bounds
-                    if *y + (*height as i32) > y_max || *x + (*width as i32) > x_max {
+                    if *y + (height as i32) > y_max || *x + (width as i32) > x_max {
                         continue;
                     } // Do not draw if it draws out of bounds
 
@@ -303,8 +314,6 @@ impl DrawQueue {
                         scale: *scale,
                         rgba: *rgba,
                         text: text.clone(),
-                        width: *width,
-                        height: *height,
                     })
                 }
                 DrawTask::Line { start, end, rgba } => {
@@ -426,10 +435,10 @@ impl DrawQueue {
         &self,
         mut buffer: ImageBuffer<Rgba<u8>, Vec<u8>>,
     ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+        // TODO - Assert the provided buffer size is sufficient
+
         let font = FontRef::try_from_slice(include_bytes!("../../../fonts/NimbusSanL-Reg.otf"))
             .expect(&DrawError::CannotCreateFont.describe());
-
-        // TODO - Assert the provided buffer size is sufficient
 
         for task in &self.queue {
             match task {
@@ -478,8 +487,6 @@ impl DrawQueue {
                     scale,
                     rgba,
                     text,
-                    width: _,
-                    height: _,
                 } => {
                     let (r, g, b, a) = rgba;
 

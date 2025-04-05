@@ -158,7 +158,7 @@ impl ExpandedMpd {
                 y: y_position,
             });
 
-            let (title_width, title_height) =
+            let (_, title_height) =
                 text_dimensions(&font, &drawn_period.id, revised_config.font_size);
 
             let title_y_position = ms_to_pixels(
@@ -177,9 +177,32 @@ impl ExpandedMpd {
                 scale: revised_config.font_size,
                 rgba: (0, 0, 0, 255),
                 text: drawn_period.id,
-                width: title_width,
-                height: title_height,
             });
+
+            if period.mpd_start_ms < from_ms {
+                draw_queue.queue(DrawTask::Text {
+                    x: x_position as i32
+                        + draw_queue_width as i32
+                        + revised_config.period_title_x_spacing as i32,
+                    y: title_y_position as i32 + title_height as i32 * 2,
+                    scale: revised_config.font_size,
+                    rgba: (0, 0, 0, 255),
+                    text: format!("Starts at {}", format_duration(period.mpd_start_ms)),
+                });
+
+                draw_queue.queue(DrawTask::Text {
+                    x: x_position as i32
+                        + draw_queue_width as i32
+                        + revised_config.period_title_x_spacing as i32,
+                    y: title_y_position as i32 + title_height as i32 * 4,
+                    scale: revised_config.font_size,
+                    rgba: (0, 0, 0, 255),
+                    text: format!(
+                        "Trimmed first {}",
+                        format_duration(from_ms - period.mpd_start_ms)
+                    ),
+                });
+            }
 
             x_position += draw_queue_width;
             // i += 1;
@@ -214,17 +237,15 @@ impl ExpandedMpd {
 
             let label_text = format!("{}", (i + from_ms) / 1000);
 
-            let (title_width, title_height) =
+            let (_, label_height) =
                 text_dimensions(&font, &label_text, revised_config.font_size / 1.5);
 
             draw_queue.push(DrawTask::Text {
                 x: 10i32,
-                y: y_position as i32 - title_height as i32 - 2,
+                y: y_position as i32 - label_height as i32 - 2,
                 scale: revised_config.font_size / 1.5,
                 rgba: (200, 200, 200, 255),
                 text: label_text.clone(),
-                width: title_width,
-                height: title_height,
             });
         }
 
@@ -467,6 +488,10 @@ fn ms_to_pixels(ms: u64, scale: u32) -> u32 {
 }
 
 fn format_duration(duration_ms: u64) -> String {
+    if duration_ms == 0 {
+        return format!("0s");
+    }
+
     let mut remaining_ms = duration_ms;
     let mut result = String::new();
 

@@ -69,7 +69,7 @@ impl Expanded for ExpandedPeriod {
         self.adaptation_sets
             .iter()
             .map(|adaptation_set| adaptation_set.end_ms())
-            .min()
+            .max()
             .expect("Could not find segments start time")
     }
 }

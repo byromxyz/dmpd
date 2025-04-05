@@ -99,6 +99,7 @@ pub enum DrawTask {
         width: u32,
         height: u32,
         rgba: (u8, u8, u8, u8),
+        hatch: Option<(u8, u8, u8, u8)>,
     },
     HollowRect {
         x: i32,
@@ -203,6 +204,7 @@ impl DrawQueue {
                     width,
                     height,
                     rgba,
+                    hatch,
                 } => {
                     if *y > y_max || *x > x_max {
                         continue;
@@ -227,6 +229,7 @@ impl DrawQueue {
                         width,
                         height,
                         rgba: *rgba,
+                        hatch: *hatch,
                     });
                 }
                 DrawTask::HollowRect {
@@ -449,6 +452,7 @@ impl DrawQueue {
                     width,
                     height,
                     rgba,
+                    hatch,
                 } => {
                     // foo
 
@@ -463,6 +467,24 @@ impl DrawQueue {
                         let rect = Rect::at(*x, *y).of_size(*width, *height);
 
                         draw_filled_rect_mut(&mut buffer, rect, color);
+
+                        if let Some(hatch_color) = *hatch {
+                            for i in (0..(*width + *height)).step_by(10) {
+                                let x_start = *x;
+                                let y_start = *y + i as i32;
+                                let x_end = *x + i as i32;
+                                let y_end = *y;
+
+                                if x_start <= *x + *width as i32 && y_end <= *y + *height as i32 {
+                                    draw_line_segment_mut(
+                                        &mut buffer,
+                                        (x_start as f32, y_start as f32),
+                                        (x_end as f32, y_end as f32),
+                                        Rgba(hatch_color.into()),
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
                 DrawTask::HollowRect {

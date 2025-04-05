@@ -8,7 +8,7 @@ use ab_glyph::FontRef;
 
 use draw_queue::{DrawQueue, DrawTask};
 use image::{ImageBuffer, Rgba};
-use log::{info, warn};
+use log::{debug, info, warn};
 
 use super::{
     Expanded, ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation,
@@ -275,15 +275,14 @@ impl ExpandedMpd {
 }
 
 fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
-    let start_ms = period.start_ms();
-
     // Create a new draw queue
     let mut draw_queue = DrawQueue::new();
 
     let mut offset_x = 0u32;
 
     for adaptation_set in period.adaptation_sets.iter() {
-        let drawn_adaptation_set = draw_adaptation_set(&adaptation_set, start_ms, config);
+        let drawn_adaptation_set =
+            draw_adaptation_set(&adaptation_set, period.start_ms(), period.end_ms(), config);
 
         let width = drawn_adaptation_set.draw_queue.width();
 
@@ -349,7 +348,8 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
 fn draw_representation(
     representation: &ExpandedRepresentation,
     content_type: &str,
-    start_ms: u64,
+    period_start_ms: u64,
+    period_end_ms: u64,
     config: &Config,
 ) -> DrawnRepresentation {
     let mut representation_queue = DrawQueue::new();
@@ -360,7 +360,23 @@ fn draw_representation(
 
             let mut i = 0;
             let mut initial_y =
-                ms_to_pixels(representation.start_ms() - start_ms, config.scale) as i32;
+                ms_to_pixels(representation.start_ms() - period_start_ms, config.scale) as i32;
+
+            if initial_y > 0 {
+                debug!(
+                    "Representation starts with a {} gap",
+                    format_duration(representation.start_ms() - period_start_ms)
+                );
+
+                // representation_queue.queue(DrawTask::FilledRect {
+                //     x: 0,
+                //     y: 0,
+                //     width: width,
+                //     height: initial_y as u32,
+                //     rgba: (200, 200, 200, 255),
+                //     hatch: Some((150, 150, 150, 255)),
+                // });
+            }
 
             for segment in &segment_timeline.segments {
                 let segment_end_y =
@@ -401,6 +417,7 @@ fn draw_representation(
                             width: width,
                             height: height as u32,
                             rgba: (r, g, b, a),
+                            hatch: None,
                         });
 
                         // start_y = y1;
@@ -419,6 +436,22 @@ fn draw_representation(
                     rgba: (0, 0, 0, 255),
                 });
             }
+
+            if representation.end_ms() < period_end_ms {
+                debug!(
+                    "Representation ends with a {} gap",
+                    format_duration(period_end_ms - representation.end_ms())
+                );
+
+                // representation_queue.queue(DrawTask::FilledRect {
+                //     x: 0,
+                //     y: initial_y,
+                //     width: width,
+                //     height: ms_to_pixels(period_end_ms - representation.end_ms(), config.scale),
+                //     rgba: (200, 200, 200, 255),
+                //     hatch: Some((150, 150, 150, 255)),
+                // });
+            }
         }
         _ => warn!("None segment timeline encountered"),
     }
@@ -430,7 +463,8 @@ fn draw_representation(
 
 fn draw_adaptation_set(
     adaptation_set: &ExpandedAdaptationSet,
-    start_ms: u64,
+    period_start_ms: u64,
+    period_end_ms: u64,
     config: &Config,
 ) -> DrawnAdaptationSet {
     // let mut drawn_representations: Vec<DrawnRepresentation> = vec![];
@@ -441,7 +475,8 @@ fn draw_adaptation_set(
         let drawn_representation = draw_representation(
             representation,
             &adaptation_set.content_type,
-            start_ms,
+            period_start_ms,
+            period_end_ms,
             config,
         );
 

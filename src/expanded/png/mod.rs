@@ -1,5 +1,6 @@
 mod draw_queue;
 
+use crate::util::draw;
 use crate::util::{draw::text_dimensions, error::DrawError};
 
 use crate::Config;
@@ -11,8 +12,8 @@ use image::{ImageBuffer, Rgba};
 use log::{debug, info, warn};
 
 use super::{
-    Expanded, ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation,
-    ExpandedSegments,
+    Expanded, ExpandedAdaptationSet, ExpandedEvent, ExpandedMpd, ExpandedPeriod,
+    ExpandedRepresentation, ExpandedSegments,
 };
 
 enum Color {
@@ -37,9 +38,18 @@ impl Color {
     }
 }
 
+struct DrawnEvent {
+    start_ms: u64,
+    end_ms: u64,
+    duration_ms: u64,
+    id: String,
+    uri: String,
+}
+
 struct DrawnPeriod {
     id: String,
     draw_queue: DrawQueue,
+    annotation_queue: DrawQueue,
 }
 
 struct DrawnRepresentation {
@@ -141,6 +151,14 @@ impl ExpandedMpd {
                 ),
             );
 
+            let trimmed_annotation_queue = drawn_period.annotation_queue.trim(
+                (0, trim_start_px as i32),
+                (
+                    drawn_period.annotation_queue.width() as i32,
+                    drawn_period.annotation_queue.height() as i32 - trim_end_px as i32,
+                ),
+            );
+
             let relative_start_ms = if trim_start_px > 0 {
                 0
             } else {
@@ -151,10 +169,17 @@ impl ExpandedMpd {
                 + ms_to_pixels(relative_start_ms, revised_config.scale);
 
             let draw_queue_width = trimmed_queue.width();
+            let annotation_queue_width = trimmed_annotation_queue.width();
 
             draw_queue.queue(DrawTask::Copy {
                 draw_queue: trimmed_queue,
                 x: x_position,
+                y: y_position,
+            });
+
+            draw_queue.queue(DrawTask::Copy {
+                draw_queue: trimmed_annotation_queue,
+                x: x_position + draw_queue_width,
                 y: y_position,
             });
 
@@ -172,6 +197,7 @@ impl ExpandedMpd {
             draw_queue.queue(DrawTask::Text {
                 x: x_position as i32
                     + draw_queue_width as i32
+                    + annotation_queue_width as i32
                     + revised_config.period_title_x_spacing as i32,
                 y: title_y_position as i32,
                 scale: revised_config.font_size,
@@ -183,6 +209,7 @@ impl ExpandedMpd {
                 draw_queue.queue(DrawTask::Text {
                     x: x_position as i32
                         + draw_queue_width as i32
+                        + annotation_queue_width as i32
                         + revised_config.period_title_x_spacing as i32,
                     y: title_y_position as i32 + title_height as i32 * 2,
                     scale: revised_config.font_size,
@@ -193,6 +220,7 @@ impl ExpandedMpd {
                 draw_queue.queue(DrawTask::Text {
                     x: x_position as i32
                         + draw_queue_width as i32
+                        + annotation_queue_width as i32
                         + revised_config.period_title_x_spacing as i32,
                     y: title_y_position as i32 + title_height as i32 * 4,
                     scale: revised_config.font_size,
@@ -233,6 +261,9 @@ impl ExpandedMpd {
                     y_position,
                 ),
                 rgba: (200, 200, 200, 255),
+                text: None,
+                arrow_start: false,
+                arrow_end: false,
             });
 
             let label_text = format!("{}", (i + from_ms) / 1000);
@@ -308,6 +339,9 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         start: top_left,
         end: bottom_left,
         rgba: (0, 0, 0, 255),
+        text: None,
+        arrow_start: false,
+        arrow_end: false,
     });
 
     // Right
@@ -315,6 +349,9 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         start: top_right,
         end: bottom_right,
         rgba: (0, 0, 0, 255),
+        text: None,
+        arrow_start: false,
+        arrow_end: false,
     });
 
     if let Some(from_ms) = config.from_ms {
@@ -324,6 +361,9 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
                 start: top_left,
                 end: top_right,
                 rgba: (0, 0, 0, 255),
+                text: None,
+                arrow_start: false,
+                arrow_end: false,
             });
         }
     }
@@ -335,13 +375,41 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
                 start: bottom_left,
                 end: bottom_right,
                 rgba: (0, 0, 0, 255),
+                text: None,
+                arrow_start: false,
+                arrow_end: false,
             });
         }
     }
 
+    let mut annotation_queue = DrawQueue::new();
+
+    // for event in period.events.iter() {
+    //     // Ignore events which end before the segment timeline
+    //     if event.end_ms < period.start_ms() {
+    //         debug!(
+    //             "Ignoring Event at {} - {} which ends before first segment at {}",
+    //             event.start_ms,
+    //             event.end_ms,
+    //             period.start_ms()
+    //         );
+    //         continue;
+    //     }
+
+    //     let x_position = 10.0;
+    //     let y_position = ms_to_pixels(event.start_ms - period.start_ms(), config.scale) as f32;
+
+    //     annotation_queue.queue(DrawTask::Line {
+    //         start: (x_position, y_position),
+    //         end: (x_position + 100.0, y_position),
+    //         rgba: (255, 0, 0, 255),
+    //     });
+    // }
+
     DrawnPeriod {
         draw_queue: draw_queue,
         id: period.id.clone(),
+        annotation_queue,
     }
 }
 
@@ -362,7 +430,7 @@ fn draw_representation(
             let mut initial_y =
                 ms_to_pixels(representation.start_ms() - period_start_ms, config.scale) as i32;
 
-            if initial_y > 0 {
+            if representation.start_ms() - period_start_ms > 200 {
                 debug!(
                     "Representation starts with a {} gap",
                     format_duration(representation.start_ms() - period_start_ms)
@@ -434,10 +502,15 @@ fn draw_representation(
                         segment_end_y as f32,
                     ),
                     rgba: (0, 0, 0, 255),
+                    text: None,
+                    arrow_start: false,
+                    arrow_end: false,
                 });
             }
 
-            if representation.end_ms() < period_end_ms {
+            if representation.end_ms() < period_end_ms
+                && period_end_ms - representation.end_ms() > 200
+            {
                 debug!(
                     "Representation ends with a {} gap",
                     format_duration(period_end_ms - representation.end_ms())

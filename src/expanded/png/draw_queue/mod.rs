@@ -14,7 +14,7 @@ use crate::util::{draw::text_dimensions, error::DrawError};
 /// Define a structure to hold a queue of draw operations
 #[derive(Debug, Clone, Serialize)]
 pub struct DrawQueue {
-    queue: VecDeque<DrawTask>,
+    pub queue: VecDeque<DrawTask>,
 }
 
 impl DrawQueue {
@@ -59,7 +59,7 @@ impl DrawQueue {
             .iter()
             .map(|task| match task {
                 DrawTask::Line { end, .. } => {
-                    return end.1 as u32;
+                    return end.1 as u32 + 1;
                 }
                 DrawTask::FilledRect { y, height, .. } => {
                     return (*y + *height as i32) as u32;
@@ -119,6 +119,9 @@ pub enum DrawTask {
         start: (f32, f32),
         end: (f32, f32),
         rgba: (u8, u8, u8, u8),
+        text: Option<String>,
+        arrow_start: bool,
+        arrow_end: bool,
     },
     Copy {
         draw_queue: DrawQueue,
@@ -266,6 +269,9 @@ impl DrawQueue {
                             start: (x as f32, y as f32),
                             end: (x as f32, y as f32 + height as f32),
                             rgba: *rgba,
+                            text: None,
+                            arrow_start: false,
+                            arrow_end: false,
                         });
                     }
 
@@ -275,6 +281,9 @@ impl DrawQueue {
                             start: (x as f32 + width as f32 - 1.0, y as f32),
                             end: (x as f32 + width as f32 - 1.0, y as f32 + height as f32),
                             rgba: *rgba,
+                            text: None,
+                            arrow_start: false,
+                            arrow_end: false,
                         });
                     }
 
@@ -284,6 +293,9 @@ impl DrawQueue {
                             start: (x as f32, y as f32),
                             end: (x as f32 + width as f32, y as f32),
                             rgba: *rgba,
+                            text: None,
+                            arrow_start: false,
+                            arrow_end: false,
                         });
                     }
 
@@ -293,6 +305,9 @@ impl DrawQueue {
                             start: (x as f32, y as f32 + height as f32 - 1.0),
                             end: (x as f32 + width as f32, y as f32 + height as f32 - 1.0),
                             rgba: *rgba,
+                            text: None,
+                            arrow_start: false,
+                            arrow_end: false,
                         });
                     }
                 }
@@ -320,7 +335,14 @@ impl DrawQueue {
                         text: text.clone(),
                     })
                 }
-                DrawTask::Line { start, end, rgba } => {
+                DrawTask::Line {
+                    start,
+                    end,
+                    rgba,
+                    text,
+                    arrow_start,
+                    arrow_end,
+                } => {
                     let (x0, y0) = *start;
                     let (x1, y1) = *end;
 
@@ -344,6 +366,9 @@ impl DrawQueue {
                         start,
                         end,
                         rgba: *rgba,
+                        text: text.clone(),
+                        arrow_start: *arrow_start,
+                        arrow_end: *arrow_end,
                     })
                 }
                 // DrawTask::Copy { draw_queue, x, y } => {
@@ -517,7 +542,14 @@ impl DrawQueue {
 
                     draw_text_mut(&mut buffer, color, *x, *y, *scale, &font, text);
                 }
-                DrawTask::Line { start, end, rgba } => {
+                DrawTask::Line {
+                    start,
+                    end,
+                    rgba,
+                    text: _,
+                    arrow_start: _,
+                    arrow_end: _,
+                } => {
                     let (r, g, b, a) = rgba;
 
                     let color = Rgba([*r, *g, *b, *a]);

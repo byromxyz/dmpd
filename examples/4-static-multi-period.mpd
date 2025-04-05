@@ -4,6 +4,13 @@
   mediaPresentationDuration="PT12M17.8S" minBufferTime="PT2S">
   <BaseURL>https://example.com</BaseURL>
   <Period id="pre-roll-1-ad-1" duration="PT15S">
+    <EventStream schemeIdUri="urn:google:dai:2018" timescale="1000">
+      <Event presentationTime="100" duration="0" id="0" messageData="google_0000000000000000000" />
+      <Event presentationTime="3750" duration="0" id="1" messageData="google_0100000000000000000" />
+      <Event presentationTime="7500" duration="0" id="2" messageData="google_0200000000000000000" />
+      <Event presentationTime="11250" duration="0" id="3" messageData="google_0300000000000000000" />
+      <Event presentationTime="14000" duration="0" id="4" messageData="google_0400000000000000000" />
+    </EventStream>
     <BaseURL>https://dai.google.com/segments/redirect/c/</BaseURL>
     <AdaptationSet id="0" contentType="audio">
       <Representation audioSamplingRate="48000" mimeType="audio/mp4" codecs="mp4a.40.2"

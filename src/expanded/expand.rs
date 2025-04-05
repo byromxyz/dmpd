@@ -1,10 +1,14 @@
 use chrono::Utc;
-use dash_mpd::{Period, MPD};
+use dash_mpd::{Event, Period, MPD};
 use log::debug;
 
-use crate::util::{parse::describe_representation, parse_segment_template};
+use crate::{
+    expanded::ExpandedEvent,
+    util::{parse::describe_representation, parse_segment_template},
+};
 
 use super::{ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
+use core::time;
 use std::time::Duration;
 
 fn get_period_start_ms(current: &Period, prev_end_ms: u64) -> u64 {
@@ -133,12 +137,59 @@ impl ExpandedMpd {
                 adaptation_sets.push(adaptation_set);
             }
 
+            let events: Vec<ExpandedEvent> = p
+                .event_streams
+                .iter()
+                .map(|event_stream| {
+                    let timescale = event_stream.timescale.unwrap_or(1);
+                    let presentation_time_offset = event_stream.presentationTimeOffset.unwrap_or(0);
+
+                    let events: Vec<ExpandedEvent> = event_stream
+                        .event
+                        .iter()
+                        .map(|event| {
+                            let start_t =
+                                event.presentationTime.unwrap_or(0) - presentation_time_offset;
+
+                            let start_ms =
+                                ((start_t as u128 * 1_000u128) / timescale as u128) as u64;
+
+                            let duration_t = event.duration.unwrap_or(0);
+
+                            let duration_ms =
+                                ((duration_t as u128 * 1_000u128) / timescale as u128) as u64;
+
+                            let end_ms = start_ms + duration_ms;
+
+                            let scheme_id_uri = event_stream
+                                .schemeIdUri
+                                .clone()
+                                .unwrap_or(format!("No URI"));
+
+                            let id = event.id.clone().unwrap_or(format!("No ID"));
+
+                            ExpandedEvent {
+                                start_ms,
+                                end_ms,
+                                duration_ms,
+                                id,
+                                scheme_id_uri,
+                            }
+                        })
+                        .collect();
+
+                    events
+                })
+                .flatten()
+                .collect();
+
             let period = ExpandedPeriod {
                 mpd_start_ms: period_start_ms,
                 mpd_end_ms: period_end_ms,
                 period_duration_ms,
                 adaptation_sets,
                 id: period_id,
+                events,
             };
 
             previous_period_end_ms = period_end_ms;

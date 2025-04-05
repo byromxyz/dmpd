@@ -47,6 +47,15 @@ impl Expanded for ExpandedMpd {
 }
 
 #[derive(Debug, Clone)]
+pub struct ExpandedEvent {
+    pub start_ms: u64,
+    pub end_ms: u64,
+    pub duration_ms: u64,
+    pub id: String,
+    pub scheme_id_uri: String,
+}
+
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct ExpandedPeriod {
     pub adaptation_sets: Vec<ExpandedAdaptationSet>,
@@ -54,6 +63,7 @@ pub struct ExpandedPeriod {
     pub mpd_end_ms: u64,
     pub period_duration_ms: u64,
     pub id: String,
+    pub events: Vec<ExpandedEvent>,
 }
 
 impl Expanded for ExpandedPeriod {

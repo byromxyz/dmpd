@@ -55,8 +55,14 @@ impl ExpandedMpd {
         let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
             .expect(&DrawError::CannotCreateFont.describe());
 
-        let mut from_ms = config.from_ms.unwrap_or(self.start_timestamp_ms());
-        let to_ms = config.to_ms.unwrap_or(self.end_timestamp_ms());
+        let mut from_ms = config
+            .from_ms
+            .unwrap_or(self.start_timestamp_ms())
+            .max(self.start_timestamp_ms());
+        let to_ms = config
+            .to_ms
+            .unwrap_or(self.end_timestamp_ms())
+            .min(self.end_timestamp_ms());
 
         if from_ms > to_ms {
             panic!("Range {}ms to {}ms is invalid. {0} > {1}", from_ms, to_ms);

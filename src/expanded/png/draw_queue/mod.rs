@@ -245,29 +245,41 @@ impl DrawQueue {
                     let x = x - x_min;
                     let y = y - y_min;
 
-                    new_queue.queue(DrawTask::Line {
-                        start: (x as f32, y as f32),
-                        end: (x as f32, y as f32 + height as f32),
-                        rgba: *rgba,
-                    });
+                    if x >= x_min {
+                        // Left
+                        new_queue.queue(DrawTask::Line {
+                            start: (x as f32, y as f32),
+                            end: (x as f32, y as f32 + height as f32),
+                            rgba: *rgba,
+                        });
+                    }
 
-                    new_queue.queue(DrawTask::Line {
-                        start: (x as f32 + width as f32 - 1.0, y as f32),
-                        end: (x as f32 + width as f32 - 1.0, y as f32 + height as f32),
-                        rgba: *rgba,
-                    });
+                    if x + (width as i32 - 1) < x_max {
+                        // Right
+                        new_queue.queue(DrawTask::Line {
+                            start: (x as f32 + width as f32 - 1.0, y as f32),
+                            end: (x as f32 + width as f32 - 1.0, y as f32 + height as f32),
+                            rgba: *rgba,
+                        });
+                    }
 
-                    new_queue.queue(DrawTask::Line {
-                        start: (x as f32, y as f32),
-                        end: (x as f32 + width as f32, y as f32),
-                        rgba: *rgba,
-                    });
+                    if y >= y_min {
+                        // Top
+                        new_queue.queue(DrawTask::Line {
+                            start: (x as f32, y as f32),
+                            end: (x as f32 + width as f32, y as f32),
+                            rgba: *rgba,
+                        });
+                    }
 
-                    new_queue.queue(DrawTask::Line {
-                        start: (x as f32, y as f32 + height as f32 - 1.0),
-                        end: (x as f32 + width as f32, y as f32 + height as f32 - 1.0),
-                        rgba: *rgba,
-                    });
+                    if y + (height as i32 - 1) < y_max {
+                        // Bottom
+                        new_queue.queue(DrawTask::Line {
+                            start: (x as f32, y as f32 + height as f32 - 1.0),
+                            end: (x as f32 + width as f32, y as f32 + height as f32 - 1.0),
+                            rgba: *rgba,
+                        });
+                    }
                 }
                 DrawTask::Text {
                     x,

@@ -83,6 +83,12 @@ impl ExpandedMpd {
         let from_ms = from_ms - from_ms % 1000;
         let to_ms = to_ms + (1000 - to_ms % 1000);
 
+        let revised_config = Config {
+            to_ms: Some(to_ms),
+            from_ms: Some(from_ms),
+            ..*config
+        };
+
         let duration_ms = to_ms - from_ms;
 
         println!(
@@ -95,7 +101,7 @@ impl ExpandedMpd {
             to_ms - from_ms
         );
 
-        let mut x_position = config.image_padding_x;
+        let mut x_position = revised_config.image_padding_x;
 
         let mut draw_queue = DrawQueue::new();
 
@@ -114,15 +120,18 @@ impl ExpandedMpd {
                 0
             };
 
-            let trim_start_px = ms_to_pixels(drawn_start_ms, config.scale);
+            let trim_start_px = ms_to_pixels(drawn_start_ms, revised_config.scale);
 
             let trim_end_px: u32 = if period.mpd_start_ms + period.end_ms() > to_ms {
-                ms_to_pixels(period.mpd_start_ms + period.end_ms() - to_ms, config.scale)
+                ms_to_pixels(
+                    period.mpd_start_ms + period.end_ms() - to_ms,
+                    revised_config.scale,
+                )
             } else {
                 0
             };
 
-            let drawn_period = draw_period(period, config);
+            let drawn_period = draw_period(period, &revised_config);
 
             let trimmed_queue = drawn_period.draw_queue.trim(
                 (0, trim_start_px as i32),
@@ -138,7 +147,8 @@ impl ExpandedMpd {
                 (period.mpd_start_ms + period.start_ms()) - from_ms
             };
 
-            let y_position = config.image_padding_y + ms_to_pixels(relative_start_ms, config.scale);
+            let y_position = revised_config.image_padding_y
+                + ms_to_pixels(relative_start_ms, revised_config.scale);
 
             let draw_queue_width = trimmed_queue.width();
 
@@ -149,22 +159,22 @@ impl ExpandedMpd {
             });
 
             let (title_width, title_height) =
-                text_dimensions(&font, &drawn_period.id, config.font_size);
+                text_dimensions(&font, &drawn_period.id, revised_config.font_size);
 
             let title_y_position = ms_to_pixels(
                 match relative_start_ms % 1000 {
                     0 => relative_start_ms + 100,
                     _ => relative_start_ms + 1000 - (relative_start_ms) % 1000 + 100,
                 },
-                config.scale,
-            ) + config.image_padding_y;
+                revised_config.scale,
+            ) + revised_config.image_padding_y;
 
             draw_queue.queue(DrawTask::Text {
                 x: x_position as i32
                     + draw_queue_width as i32
-                    + config.period_title_x_spacing as i32,
+                    + revised_config.period_title_x_spacing as i32,
                 y: title_y_position as i32,
-                scale: config.font_size,
+                scale: revised_config.font_size,
                 rgba: (0, 0, 0, 255),
                 text: drawn_period.id,
                 width: title_width,
@@ -181,14 +191,15 @@ impl ExpandedMpd {
         draw_queue.queue(DrawTask::HollowRect {
             x: 0,
             y: 0,
-            width: draw_queue_width + config.image_padding_x,
-            height: draw_queue_height + config.image_padding_y,
+            width: draw_queue_width + revised_config.image_padding_x,
+            height: draw_queue_height + revised_config.image_padding_y,
             rgba: (0, 0, 0, 255),
         });
 
         // Draw lines for each whole second in the manifest
         for i in (0..=duration_ms).step_by(1000) {
-            let y_position = ms_to_pixels(i, config.scale) as f32 + config.image_padding_y as f32;
+            let y_position = ms_to_pixels(i, revised_config.scale) as f32
+                + revised_config.image_padding_y as f32;
 
             draw_queue.push(DrawTask::Line {
                 start: (0f32, y_position),
@@ -204,12 +215,12 @@ impl ExpandedMpd {
             let label_text = format!("{}", (i + from_ms) / 1000);
 
             let (title_width, title_height) =
-                text_dimensions(&font, &label_text, config.font_size / 1.5);
+                text_dimensions(&font, &label_text, revised_config.font_size / 1.5);
 
             draw_queue.push(DrawTask::Text {
                 x: 10i32,
                 y: y_position as i32 - title_height as i32 - 2,
-                scale: config.font_size / 1.5,
+                scale: revised_config.font_size / 1.5,
                 rgba: (200, 200, 200, 255),
                 text: label_text.clone(),
                 width: title_width,
@@ -266,13 +277,49 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         offset_x += width + config.adaptation_set_padding;
     }
 
-    draw_queue.queue(DrawTask::HollowRect {
-        x: 0,
-        y: 0,
-        width: draw_queue.width(),
-        height: draw_queue.height(),
+    let top_left = (0f32, 0f32);
+    let bottom_left = (0f32, draw_queue.height() as f32 - 1.0);
+    let top_right = (draw_queue.width() as f32 - 1.0, 0f32);
+    let bottom_right = (
+        draw_queue.width() as f32 - 1.0,
+        draw_queue.height() as f32 - 1.0,
+    );
+
+    // Left
+    draw_queue.queue(DrawTask::Line {
+        start: top_left,
+        end: bottom_left,
         rgba: (0, 0, 0, 255),
     });
+
+    // Right
+    draw_queue.queue(DrawTask::Line {
+        start: top_right,
+        end: bottom_right,
+        rgba: (0, 0, 0, 255),
+    });
+
+    if let Some(from_ms) = config.from_ms {
+        if from_ms <= period.mpd_start_ms {
+            // Top
+            draw_queue.queue(DrawTask::Line {
+                start: top_left,
+                end: top_right,
+                rgba: (0, 0, 0, 255),
+            });
+        }
+    }
+
+    if let Some(to_ms) = config.to_ms {
+        if to_ms >= period.mpd_end_ms {
+            // Bottom
+            draw_queue.queue(DrawTask::Line {
+                start: bottom_left,
+                end: bottom_right,
+                rgba: (0, 0, 0, 255),
+            });
+        }
+    }
 
     DrawnPeriod {
         draw_queue: draw_queue,

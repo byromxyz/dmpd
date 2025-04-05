@@ -92,7 +92,7 @@ impl ExpandedMpd {
         let duration_ms = to_ms - from_ms;
 
         info!(
-            "Manifest is {} long ({}ms to {}ms). Drawing {} - {} ({})",
+            "Manifest is {} long ({}ms to {}ms) Drawing {} - {} ({})",
             format_duration(self.end_ms() - self.start_ms()),
             self.start_ms(),
             self.end_ms(),

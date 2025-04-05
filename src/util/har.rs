@@ -3,6 +3,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use chrono::DateTime;
+use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -64,7 +65,7 @@ pub fn extract_mpd(har_path_string: &String, output_dir_path: &PathBuf) -> Vec<P
         }
 
         if entry.response.content.encoding.as_deref() == Some("base64") {
-            eprintln!("Entry needs Base64 decoding");
+            warn!("Entry needs Base64 decoding");
             continue;
         }
 
@@ -108,13 +109,13 @@ pub fn extract_mpd(har_path_string: &String, output_dir_path: &PathBuf) -> Vec<P
 
         let path = output_dir_path.join(&filename);
 
-        println!("Writing {}", path.display());
+        info!("Writing {}", path.display());
 
         let mut file = File::create(&path).expect("Error creating file");
 
         match file.write_all(text.as_bytes()) {
             Ok(_r) => {
-                println!("Saved {}", filename);
+                info!("Saved {}", filename);
 
                 paths.push(path);
             }

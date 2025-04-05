@@ -1,10 +1,8 @@
 use chrono::Utc;
 use dash_mpd::{Period, MPD};
+use log::debug;
 
-use crate::{
-    debug,
-    util::{parse::describe_representation, parse_segment_template},
-};
+use crate::util::{parse::describe_representation, parse_segment_template};
 
 use super::{ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
 use std::time::Duration;
@@ -47,8 +45,6 @@ fn get_period_duration_ms(
 
         return mpd_duration_ms as u64 - start_ms;
     }
-
-    panic!("Unable to parse period duration");
 }
 
 impl ExpandedMpd {
@@ -74,9 +70,9 @@ impl ExpandedMpd {
 
             let period_id = p.id.clone().unwrap_or("No ID".to_owned());
 
-            debug!("\nPeriod: {}", period_id);
+            debug!("Expanding Period: {}", period_id);
 
-            debug!("  {} AdaptationSets", p.adaptations.len());
+            debug!("Contains {} AdaptationSets", p.adaptations.len());
 
             let mut adaptation_sets: Vec<ExpandedAdaptationSet> = vec![];
 
@@ -84,7 +80,7 @@ impl ExpandedMpd {
                 let adaptation_set_id = adaptation.id.clone().unwrap_or("No ID".to_owned());
 
                 debug!(
-                    "\n  AdaptationSet {} ({}) has {} Representations",
+                    "AdaptationSet {} ({}) has {} Representations",
                     adaptation_set_id,
                     adaptation
                         .contentType
@@ -113,7 +109,7 @@ impl ExpandedMpd {
                     let representation_description = describe_representation(rep, adaptation);
 
                     debug!(
-                        "\n  Representation {}: {}",
+                        " - Representation {}: {}",
                         representation_id, representation_description
                     );
 

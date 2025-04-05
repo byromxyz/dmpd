@@ -1,11 +1,14 @@
-use clap::{App, Parser};
-use std::{fmt, fs, path::PathBuf, sync::Arc, thread, u64};
+use clap::Parser;
+#[allow(unused_imports)]
+use log::{error, info, trace, warn, Level};
+use std::{fmt, fs, io, path::PathBuf, sync::Arc, thread, time::SystemTime, u64};
+
+use fern::colors::{Color, ColoredLevelConfig};
 
 use expanded::ExpandedMpd;
 use util::har::extract_mpd;
 
 mod util {
-    pub mod debug;
     pub mod draw;
     pub mod error;
     pub mod har;
@@ -16,7 +19,7 @@ mod util {
 
 mod expanded;
 
-use crate::util::{debug, error::ParseError, update};
+use crate::util::{error::ParseError, update};
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -24,8 +27,8 @@ pub struct Args {
     #[clap(value_parser, required = true)]
     filename: String,
 
-    #[clap(short, long, action)]
-    debug: bool,
+    #[clap(short, long, action, default_value = "1")]
+    log_level: u64,
 
     #[clap(long)]
     slice: bool,
@@ -106,12 +109,74 @@ impl std::fmt::Debug for AppError {
     }
 }
 
+fn setup_logging(verbosity: u64) -> Result<(), log::SetLoggerError> {
+    let colors_line = ColoredLevelConfig::new()
+        .error(Color::Red)
+        .warn(Color::Yellow)
+        .info(Color::White) // Default
+        .debug(Color::BrightBlack)
+        .trace(Color::BrightBlack);
+
+    let mut config = fern::Dispatch::new()
+        .level(log::LevelFilter::Trace)
+        .chain(io::stdout());
+
+    if verbosity > 1 {
+        config = config.format(move |out, message, record| {
+            out.finish(format_args!(
+                "{color_line}[{date}] [{target}]{level}{color_line} {message}\x1B[0m",
+                color_line = format_args!(
+                    "\x1B[{}m",
+                    colors_line.get_color(&record.level()).to_fg_str()
+                ),
+                date = humantime::format_rfc3339_seconds(SystemTime::now()),
+                target = record.target(),
+                level = match record.level() {
+                    Level::Trace => " Trace:",
+                    Level::Debug => " Debug:",
+                    Level::Info => "",
+                    Level::Warn => " Warn:",
+                    Level::Error => " Error:",
+                },
+                message = message,
+            ));
+        });
+    } else {
+        config = config.format(move |out, message, record| {
+            out.finish(format_args!(
+                "{color_line}{level}{color_line} {message}\x1B[0m",
+                color_line = format_args!(
+                    "\x1B[{}m",
+                    colors_line.get_color(&record.level()).to_fg_str()
+                ),
+                level = match record.level() {
+                    Level::Trace => " Trace:",
+                    Level::Debug => " Debug:",
+                    Level::Info => "",
+                    Level::Warn => " Warn:",
+                    Level::Error => " Error:",
+                },
+                message = message,
+            ));
+        });
+    }
+
+    config = match verbosity {
+        0 => config.level(log::LevelFilter::Warn),
+        1 => config.level(log::LevelFilter::Info),
+        2 => config.level(log::LevelFilter::Debug),
+        _ => config.level(log::LevelFilter::Trace),
+    };
+
+    config.apply()
+}
+
 fn main() -> Result<(), AppError> {
     let args: Args = Args::parse();
 
-    update::check_updates();
+    setup_logging(args.log_level).expect("Failed to initialise logger.");
 
-    debug::DEBUG.store(args.debug, std::sync::atomic::Ordering::Relaxed);
+    update::check_updates();
 
     let path = std::path::Path::new(&args.filename);
 
@@ -266,8 +331,6 @@ fn handle_mpd(filename: &str, args: &Args) -> Result<(), AppError> {
             for handle in handles {
                 handle.join().expect("Thread panicked");
             }
-
-            println!("Threads done");
         } else {
             if let Some(image) = expanded.to_png(&config) {
                 image.save(filename.replace(".mpd", ".png")).unwrap();

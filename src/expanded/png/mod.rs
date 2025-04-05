@@ -1,14 +1,14 @@
 mod draw_queue;
 
-use crate::util::parse::parse_ms_duration;
 use crate::util::{draw::text_dimensions, error::DrawError};
 
-use crate::{debug, Config};
+use crate::Config;
 
 use ab_glyph::FontRef;
 
 use draw_queue::{DrawQueue, DrawTask};
 use image::{ImageBuffer, Rgba};
+use log::{info, warn};
 
 use super::{
     Expanded, ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation,
@@ -69,12 +69,12 @@ impl ExpandedMpd {
         }
 
         if !config.slice && to_ms - from_ms > config.max_duration_ms {
-            println!(
-                "Calculated range {} to {} ({}ms) is greater than max_duration_ms ({}ms). See --max-duration-ms and --slice",
+            warn!(
+                "Calculated range {} to {} ({}) is greater than max_duration_ms ({}). See --max-duration-ms and --slice",
                 from_ms,
                 to_ms,
-                to_ms - from_ms,
-                config.max_duration_ms
+                format_duration(to_ms - from_ms),
+                format_duration(config.max_duration_ms)
             );
 
             from_ms = to_ms - config.max_duration_ms;
@@ -91,14 +91,14 @@ impl ExpandedMpd {
 
         let duration_ms = to_ms - from_ms;
 
-        println!(
-            "Manifest is {} long ({}ms to {}ms). Drawing {}ms - {}ms ({}ms)",
-            parse_ms_duration(self.end_ms() - self.start_ms()),
+        info!(
+            "Manifest is {} long ({}ms to {}ms). Drawing {} - {} ({})",
+            format_duration(self.end_ms() - self.start_ms()),
             self.start_ms(),
             self.end_ms(),
-            from_ms,
-            to_ms,
-            to_ms - from_ms
+            format_duration(from_ms),
+            format_duration(to_ms),
+            format_duration(to_ms - from_ms)
         );
 
         let mut x_position = revised_config.image_padding_x;
@@ -270,8 +270,6 @@ impl ExpandedMpd {
         // let combined = draw_queue.execute();
         let combined = draw_queue.execute_with_buffer(background);
 
-        debug!("Done");
-
         Some(combined)
     }
 }
@@ -365,15 +363,6 @@ fn draw_representation(
                 ms_to_pixels(representation.start_ms() - start_ms, config.scale) as i32;
 
             for segment in &segment_timeline.segments {
-                debug!(
-                    "Draw segment {} {} x {}ms {} @ {}",
-                    i,
-                    initial_y,
-                    segment.segment_duration_ms,
-                    segment.segment_count,
-                    segment.start_ms
-                );
-
                 let segment_end_y =
                     initial_y + ms_to_pixels(segment.duration_ms, config.scale) as i32 - 1i32;
 
@@ -388,7 +377,7 @@ fn draw_representation(
                     let height = y1 - y0;
 
                     if height < 1 {
-                        debug!("Less than 1px segment");
+                        warn!("Less than 1px segment");
                     } else {
                         let (r, g, b, a) = match content_type {
                             "audio" => match i % 2 {
@@ -431,7 +420,7 @@ fn draw_representation(
                 });
             }
         }
-        _ => debug!("None segment timeline encountered"),
+        _ => warn!("None segment timeline encountered"),
     }
 
     DrawnRepresentation {

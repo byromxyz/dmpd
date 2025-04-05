@@ -5,6 +5,7 @@ use std::{
     os::unix::fs::PermissionsExt,
 };
 
+use log::{debug, info, warn};
 use reqwest::blocking::Client;
 use semver::Version;
 use serde::Deserialize;
@@ -98,7 +99,7 @@ fn compare_versions(current_version: &str, provided_version: &str) -> Result<i8,
 pub fn check_updates() {
     // Check if running in dev mode
     if cfg!(debug_assertions) {
-        println!("Running in debug mode. Skipping updates.");
+        debug!("Running in debug mode. Skipping updates.");
         return;
     }
 
@@ -106,7 +107,7 @@ pub fn check_updates() {
     let target_arch = env::consts::ARCH; // e.g., "x86_64", "aarch64"
     let target_os = env::consts::OS; // e.g., "macos", "linux", "windows"
 
-    println!(
+    debug!(
         "Checking for updates:\n  Target arch: {}\n  Target OS: {}",
         target_arch, target_os
     );
@@ -121,7 +122,7 @@ pub fn check_updates() {
         .unwrap();
 
     if !http_result.status().is_success() {
-        println!(
+        warn!(
             "Unable to lookup latest release version. Skipping update check. {:?}",
             http_result.status()
         );
@@ -134,7 +135,7 @@ pub fn check_updates() {
 
     let current_version = env!("CARGO_PKG_VERSION");
 
-    println!(
+    debug!(
         "  Current version: {}\n  Latest version: {}",
         current_version, version
     );
@@ -149,12 +150,12 @@ pub fn check_updates() {
         ));
 
     if compare_versions(current_version, version) >= Ok(0) {
-        println!("Current version is up to date");
+        debug!("Current version is up to date");
 
         return;
     }
 
-    println!("Newer version available");
+    info!("Newer version available");
 
     let current_exe = env::current_exe().expect("Could not get current exe");
     let backup_path = current_exe.with_extension("bak");
@@ -163,7 +164,7 @@ pub fn check_updates() {
         .expect("Could not get current exe directory")
         .join("new_binary");
 
-    println!(
+    info!(
         "Attempting to update.\n  Current path:  {:?}\n  Backup path:  {:?}\n  Tmp path:  {:?}",
         current_exe, backup_path, new_binary_path
     );
@@ -176,14 +177,14 @@ pub fn check_updates() {
 
     let content_length = response.content_length().unwrap_or(0);
 
-    println!("Content-Length: {} MB", content_length / 1_000_000);
+    debug!("Content-Length: {} MB", content_length / 1_000_000);
 
-    println!("Downloaded new binary ({} bytes)", content_length);
+    debug!("Downloaded new binary ({} bytes)", content_length);
 
     io::copy(&mut response.take(content_length), &mut file)
         .expect("Unable to copy downloaded binary to file location");
 
-    println!("Copied binary to tmp location");
+    debug!("Copied binary to tmp location");
 
     let mut permissions = fs::metadata(&new_binary_path)
         .expect("Could not get metadata for downloaded binary")
@@ -192,19 +193,19 @@ pub fn check_updates() {
     permissions.set_mode(0o755); // Owner: read, write, execute; Group: read, execute; Others: read, execute
     fs::set_permissions(&new_binary_path, permissions).expect("Could not make exe executable");
 
-    println!("New binary is executable");
+    debug!("New binary is executable");
 
     // let response = reqwest::blocking::get(url)?;
 
     // Rename current executable to backup
     fs::rename(&current_exe, &backup_path).expect("Unable to rename current exe as backup");
 
-    println!("Current binary renamed as backup");
+    debug!("Current binary renamed as backup");
 
     // Rename new binary to current executable's name
     fs::rename(new_binary_path, &current_exe).expect("Unable to rename new exe as current");
 
-    println!("New binary renamed as current");
+    debug!("New binary renamed as current");
 
     // TODO: (??) On Windows, schedule deletion of the backup after a delay
     // #[cfg(target_os = "windows")]

@@ -6,6 +6,7 @@ use imageproc::{
     drawing::{draw_filled_rect_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut},
     rect::Rect,
 };
+use log::warn;
 use serde::Serialize;
 
 use crate::util::{draw::text_dimensions, error::DrawError};
@@ -457,7 +458,7 @@ impl DrawQueue {
 
                     if *height == 0 {
                         //  TODO - Prevent this
-                        eprintln!("Attempting to draw a rect with 0 height at ({}, {}) width: {} height: {}", *x, *y, *width, *height);
+                        warn!("Attempting to draw a rect with 0 height at ({}, {}) width: {} height: {}", *x, *y, *width, *height);
                     } else {
                         let rect = Rect::at(*x, *y).of_size(*width, *height);
 

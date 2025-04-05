@@ -270,7 +270,7 @@ fn handle_mpd(filename: &str, args: &Args) -> Result<(), AppError> {
             println!("Threads done");
         } else {
             if let Some(image) = expanded.to_png(&config) {
-                image.save(args.filename.replace(".mpd", ".png")).unwrap();
+                image.save(filename.replace(".mpd", ".png")).unwrap();
             }
         }
     }

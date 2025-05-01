@@ -176,6 +176,12 @@ fn main() -> Result<(), AppError> {
 
     setup_logging(args.log_level).expect("Failed to initialise logger.");
 
+    if args.filename == "update" {
+        update::update();
+
+        return Ok(());
+    }
+
     update::check_updates();
 
     let path = std::path::Path::new(&args.filename);

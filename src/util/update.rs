@@ -103,14 +103,9 @@ pub fn check_updates() {
         return;
     }
 
-    // Get the current system architecture and OS
     let target_arch = env::consts::ARCH; // e.g., "x86_64", "aarch64"
-    let target_os = env::consts::OS; // e.g., "macos", "linux", "windows"
 
-    debug!(
-        "Checking for updates:\n  Target arch: {}\n  Target OS: {}",
-        target_arch, target_os
-    );
+    debug!("Checking for updates:\n  Target arch: {}", target_arch);
 
     let client = Client::new();
 
@@ -140,6 +135,45 @@ pub fn check_updates() {
         current_version, version
     );
 
+    if compare_versions(current_version, version) >= Ok(0) {
+        debug!("Current version is up to date");
+
+        return;
+    }
+
+    info!("Newer version available. Run `dmpd update` to update");
+}
+
+pub fn update() {
+    let current_exe = env::current_exe().expect("Could not get current exe");
+    let backup_path = current_exe.with_extension("bak");
+
+    let new_binary_path = env::current_dir()
+        .expect("Could not get current exe directory")
+        .join("new_binary");
+
+    // Get the current system architecture and OS
+    let target_arch = env::consts::ARCH; // e.g., "x86_64", "aarch64"
+
+    let client = Client::new();
+
+    let http_result = client
+        .get("https://api.github.com/repos/byromxyz/dmpd/releases/latest")
+        .header("Accept", "application/vnd.github+json")
+        .header("User-Agent", "dmpd")
+        .send()
+        .unwrap();
+
+    if !http_result.status().is_success() {
+        warn!(
+            "Unable to lookup latest release version. Skipping update check. {:?}",
+            http_result.status()
+        );
+        return;
+    }
+
+    let body = serde_json::from_str::<Release>(&http_result.text().unwrap()).unwrap();
+
     let latest_asset = &body
         .assets
         .iter()
@@ -149,25 +183,7 @@ pub fn check_updates() {
             target_arch
         ));
 
-    if compare_versions(current_version, version) >= Ok(0) {
-        debug!("Current version is up to date");
-
-        return;
-    }
-
-    info!("Newer version available");
-
-    let current_exe = env::current_exe().expect("Could not get current exe");
-    let backup_path = current_exe.with_extension("bak");
-
-    let new_binary_path = env::current_dir()
-        .expect("Could not get current exe directory")
-        .join("new_binary");
-
-    info!(
-        "Attempting to update.\n  Current path:  {:?}\n  Backup path:  {:?}\n  Tmp path:  {:?}",
-        current_exe, backup_path, new_binary_path
-    );
+    info!("Downloading {:?}", &latest_asset.browser_download_url);
 
     let response = reqwest::blocking::get(&latest_asset.browser_download_url)
         .expect("Could not block download the updated binary");
@@ -206,6 +222,8 @@ pub fn check_updates() {
     fs::rename(new_binary_path, &current_exe).expect("Unable to rename new exe as current");
 
     debug!("New binary renamed as current");
+
+    info!("Updated.");
 
     // TODO: (??) On Windows, schedule deletion of the backup after a delay
     // #[cfg(target_os = "windows")]

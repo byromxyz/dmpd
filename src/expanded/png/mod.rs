@@ -273,6 +273,19 @@ impl ExpandedMpd {
             });
         }
 
+        let warning = String::from("Experimental. Verify output");
+
+        let (warning_width, warning_height) =
+            text_dimensions(&*FONT, &warning, revised_config.font_size);
+
+        draw_queue.queue(DrawTask::Text {
+            x: (draw_queue.width / 2 - warning_width / 2) as i32,
+            y: (revised_config.image_padding_y / 2 - warning_height / 2) as i32,
+            scale: revised_config.font_size,
+            rgba: (255, 0, 0, 255),
+            text: "Experimental. Verify output.".to_owned(),
+        });
+
         draw_queue
     }
 

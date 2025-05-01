@@ -1,4 +1,5 @@
 use dash_mpd::SegmentTemplate;
+use log::warn;
 
 use crate::expanded::{
     ExpandedSegmentDescription, ExpandedSegmentTimeline, ExpandedSegments, SegmentDescriptionType,
@@ -116,8 +117,17 @@ fn _parse_segment_template(
         .scan(0u64, |running_timescale_unit, segment| {
             let start_timescale_unit = segment.t.unwrap_or(*running_timescale_unit);
 
-            let relative_timescale_unit =
-                start_timescale_unit - presentation_time_offset.unwrap_or(0);
+            let pto = presentation_time_offset.unwrap_or(0);
+
+            let relative_timescale_unit = if pto > start_timescale_unit {
+                warn!(
+                    "TODO - Segment has a negative start time: -{}",
+                    pto - start_timescale_unit
+                );
+                0
+            } else {
+                start_timescale_unit - pto
+            };
 
             let start_ms = (relative_timescale_unit as u128 * 1_000u128 / timescale as u128) as u64;
 

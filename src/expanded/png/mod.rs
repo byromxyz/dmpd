@@ -1,13 +1,12 @@
 mod draw_queue;
 
-use crate::util::draw;
-use crate::util::{draw::text_dimensions, error::DrawError};
+use std::time::Instant;
+
+use crate::util::{draw::text_dimensions, error};
 
 use crate::Config;
 
-use ab_glyph::FontRef;
-
-use draw_queue::{DrawQueue, DrawTask};
+use draw_queue::{DrawQueue, DrawTask, FONT};
 use image::{ImageBuffer, Rgba};
 use log::{debug, info, warn};
 
@@ -62,9 +61,6 @@ struct DrawnAdaptationSet {
 
 impl ExpandedMpd {
     fn prepare(&self, config: &Config) -> DrawQueue {
-        let font = FontRef::try_from_slice(include_bytes!("../../fonts/NimbusSanL-Reg.otf"))
-            .expect(&DrawError::CannotCreateFont.describe());
-
         let mut from_ms = config
             .from_ms
             .unwrap_or(self.start_timestamp_ms())
@@ -184,7 +180,7 @@ impl ExpandedMpd {
             });
 
             let (_, title_height) =
-                text_dimensions(&font, &drawn_period.id, revised_config.font_size);
+                text_dimensions(&*FONT, &drawn_period.id, revised_config.font_size);
 
             let title_y_position = ms_to_pixels(
                 match relative_start_ms % 1000 {
@@ -261,15 +257,12 @@ impl ExpandedMpd {
                     y_position,
                 ),
                 rgba: (200, 200, 200, 255),
-                text: None,
-                arrow_start: false,
-                arrow_end: false,
             });
 
             let label_text = format!("{}", (i + from_ms) / 1000);
 
             let (_, label_height) =
-                text_dimensions(&font, &label_text, revised_config.font_size / 1.5);
+                text_dimensions(&*FONT, &label_text, revised_config.font_size / 1.5);
 
             draw_queue.push(DrawTask::Text {
                 x: 10i32,
@@ -290,6 +283,8 @@ impl ExpandedMpd {
     }
 
     pub fn to_png(&self, config: &Config) -> Option<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let start_time = Instant::now();
+
         let draw_queue = self.prepare(config);
 
         let background = ImageBuffer::from_pixel(
@@ -300,6 +295,10 @@ impl ExpandedMpd {
 
         // let combined = draw_queue.execute();
         let combined = draw_queue.execute_with_buffer(background);
+
+        let elapsed = start_time.elapsed();
+
+        info!("Time: {:?}", elapsed);
 
         Some(combined)
     }
@@ -339,9 +338,6 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         start: top_left,
         end: bottom_left,
         rgba: (0, 0, 0, 255),
-        text: None,
-        arrow_start: false,
-        arrow_end: false,
     });
 
     // Right
@@ -349,9 +345,6 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         start: top_right,
         end: bottom_right,
         rgba: (0, 0, 0, 255),
-        text: None,
-        arrow_start: false,
-        arrow_end: false,
     });
 
     if let Some(from_ms) = config.from_ms {
@@ -361,9 +354,6 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
                 start: top_left,
                 end: top_right,
                 rgba: (0, 0, 0, 255),
-                text: None,
-                arrow_start: false,
-                arrow_end: false,
             });
         }
     }
@@ -375,14 +365,11 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
                 start: bottom_left,
                 end: bottom_right,
                 rgba: (0, 0, 0, 255),
-                text: None,
-                arrow_start: false,
-                arrow_end: false,
             });
         }
     }
 
-    let mut annotation_queue = DrawQueue::new();
+    let annotation_queue = DrawQueue::new();
 
     // for event in period.events.iter() {
     //     // Ignore events which end before the segment timeline
@@ -397,13 +384,29 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
     //     }
 
     //     let x_position = 10.0;
-    //     let y_position = ms_to_pixels(event.start_ms - period.start_ms(), config.scale) as f32;
+    //     let start_y = ms_to_pixels(event.start_ms - period.start_ms(), config.scale) as f32;
 
     //     annotation_queue.queue(DrawTask::Line {
-    //         start: (x_position, y_position),
-    //         end: (x_position + 100.0, y_position),
+    //         start: (x_position, start_y),
+    //         end: (x_position + 20.0, start_y),
     //         rgba: (255, 0, 0, 255),
     //     });
+
+    //     if event.duration_ms > 0 {
+    //         let end_y = ms_to_pixels(event.end_ms - period.start_ms(), config.scale) as f32;
+
+    //         annotation_queue.queue(DrawTask::Line {
+    //             start: (x_position + 20.0, start_y),
+    //             end: (x_position + 20.0, end_y),
+    //             rgba: (255, 0, 0, 255),
+    //         });
+
+    //         annotation_queue.queue(DrawTask::Line {
+    //             start: (x_position, end_y),
+    //             end: (x_position + 20.0, end_y),
+    //             rgba: (255, 0, 0, 255),
+    //         });
+    //     }
     // }
 
     DrawnPeriod {
@@ -502,9 +505,6 @@ fn draw_representation(
                         segment_end_y as f32,
                     ),
                     rgba: (0, 0, 0, 255),
-                    text: None,
-                    arrow_start: false,
-                    arrow_end: false,
                 });
             }
 

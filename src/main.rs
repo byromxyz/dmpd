@@ -27,40 +27,54 @@ pub struct Args {
     #[clap(value_parser, required = true)]
     filename: String,
 
-    #[clap(short, long, action, default_value = "1")]
+    #[clap(
+        short,
+        long,
+        action,
+        default_value = "1",
+        help = "0 = warn, 1 = info, 2 = debug, 3 = trace"
+    )]
     log_level: u64,
 
-    #[clap(long)]
+    #[clap(
+        long,
+        help = "Outputs the whole mpd file in batches sized by max-duration-ms"
+    )]
     slice: bool,
 
-    #[clap(short, long, action)]
+    #[clap(short, long, action, hide = true)]
     plan: bool,
 
-    #[clap(long, default_value = "120000", value_parser = parse_max_duration)]
+    #[clap(
+        long,
+        default_value = "120000",
+        value_parser = parse_max_duration,
+        help = "The maximum duration of the output PNG file"
+    )]
     max_duration_ms: u64,
 
-    #[clap(long, default_value_t = 120)]
+    #[clap(long, default_value_t = 120, hide = true)]
     image_padding_x: u32,
 
-    #[clap(long, default_value_t = 90)]
+    #[clap(long, default_value_t = 90, hide = true)]
     image_padding_y: u32,
 
-    #[clap(long, default_value_t = 10)]
+    #[clap(long, default_value_t = 10, hide = true)]
     period_title_x_spacing: u32,
 
     #[clap(long, default_value_t = 40)]
     scale: u32,
 
-    #[clap(long, default_value_t = 20.0)]
+    #[clap(long, default_value_t = 20.0, hide = true)]
     font_size: f32,
 
-    #[clap(long, default_value_t = 20)]
+    #[clap(long, default_value_t = 20, hide = true)]
     adaptation_set_padding: u32,
 
-    #[clap(long, default_value_t = 40)]
+    #[clap(long, default_value_t = 40, hide = true)]
     representation_width: u32,
 
-    #[clap(long, default_value_t = 5)]
+    #[clap(long, default_value_t = 5, hide = true)]
     representation_padding: u32,
 
     #[clap(long)]

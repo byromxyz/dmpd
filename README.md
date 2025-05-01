@@ -34,7 +34,7 @@ dmpd ./some/dir
 ### Config
 
 - `--max-duration-ms XXX` Determines the maximum duration of the output. All other content will be trimmed.
-- `--slice` produces multiple PNG files for the whole manifest, each `max-duration-ms` long.
+- `--slice` Produces multiple PNG files for the whole manifest, each `max-duration-ms` long.
 - `--from-ms XXX` Start point within the manifest.
 - `--to-ms XXX` End point within the manifest.
 

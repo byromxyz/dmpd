@@ -69,11 +69,13 @@ pub fn extract_mpd(har_path_string: &String, output_dir_path: &PathBuf) -> Vec<P
             continue;
         }
 
-        let text = &entry
-            .response
-            .content
-            .text
-            .expect("Found dash+xml entry with no text");
+        let text = &entry.response.content.text;
+
+        if text.is_none() {
+            continue;
+        }
+
+        let text = text.clone().expect("found dash+xml with no content");
 
         let full_url = &entry.request.url;
 

@@ -1,5 +1,13 @@
+use std::time::Duration;
+
+use chrono::DateTime;
+
 mod expand;
 mod png;
+
+/// Type representing an xs:dateTime, as per <https://www.w3.org/TR/xmlschema-2/#dateTime>
+// Something like 2021-06-03T13:00:00Z or 2022-12-06T22:27:53
+pub type XsDatetime = DateTime<chrono::offset::Utc>;
 
 pub trait Expanded {
     fn start_ms(&self) -> u64;
@@ -8,9 +16,23 @@ pub trait Expanded {
 }
 
 #[derive(Debug)]
+pub enum MpdType {
+    Dynamic {
+        availability_start_time: XsDatetime,
+        publish_time: XsDatetime,
+        minimum_update_period: Duration,
+        suggested_presentation_delay: Option<Duration>,
+    },
+    Static {
+        media_presentation_duration: Option<Duration>,
+    },
+}
+
+#[derive(Debug)]
 #[allow(dead_code)]
 pub struct ExpandedMpd {
     pub periods: Vec<ExpandedPeriod>,
+    pub mpd_type: MpdType,
 }
 
 // TODO - Reconsider naming of start_ms, end_ms, etc.
@@ -25,11 +47,35 @@ impl ExpandedMpd {
     }
 
     pub fn end_timestamp_ms(&self) -> u64 {
-        let last_period = self.periods.iter().last().expect("No periods");
+        match self.mpd_type {
+            MpdType::Dynamic {
+                availability_start_time,
+                publish_time,
+                minimum_update_period,
+                suggested_presentation_delay: _,
+            } => {
+                // Calculate the latest possible "now" based on the publish time and update period
+                let now = publish_time + minimum_update_period;
 
-        let end_timestamp = last_period.mpd_start_ms + last_period.end_ms();
+                // Calculate a maximum duration using availability_start_time as the zero-point
+                let valid_timeline_duration =
+                    (now - availability_start_time).num_milliseconds() as u64;
 
-        end_timestamp
+                let last_period = self.periods.last().expect("No periods.");
+
+                let internal_timeline_duration =
+                    last_period.mpd_start_ms + last_period.period_duration_ms;
+
+                return valid_timeline_duration.max(internal_timeline_duration);
+            }
+            MpdType::Static {
+                media_presentation_duration,
+            } => {
+                return media_presentation_duration
+                    .expect("Static manifest without mediaPresentationDuration ??")
+                    .as_millis() as u64;
+            }
+        }
     }
 }
 

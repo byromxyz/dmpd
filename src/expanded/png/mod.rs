@@ -1,11 +1,13 @@
 mod draw_queue;
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
+use crate::expanded::MpdType;
 use crate::util::{draw::text_dimensions, error};
 
 use crate::Config;
 
+use chrono::TimeDelta;
 use draw_queue::{DrawQueue, DrawTask, FONT};
 use image::{ImageBuffer, Rgba};
 use log::{debug, info, warn};
@@ -65,6 +67,7 @@ impl ExpandedMpd {
             .from_ms
             .unwrap_or(self.start_timestamp_ms())
             .max(self.start_timestamp_ms());
+
         let to_ms = config
             .to_ms
             .unwrap_or(self.end_timestamp_ms())
@@ -235,14 +238,6 @@ impl ExpandedMpd {
         let draw_queue_width = draw_queue.width();
         let draw_queue_height = draw_queue.height();
 
-        draw_queue.queue(DrawTask::HollowRect {
-            x: 0,
-            y: 0,
-            width: draw_queue_width + revised_config.image_padding_x,
-            height: draw_queue_height + revised_config.image_padding_y,
-            rgba: (0, 0, 0, 255),
-        });
-
         // Draw lines for each whole second in the manifest
         for i in (0..=duration_ms).step_by(1000) {
             let y_position = ms_to_pixels(i, revised_config.scale) as f32
@@ -252,7 +247,7 @@ impl ExpandedMpd {
                 start: (0f32, y_position),
                 end: (
                     // IMAGE_PADDING as f32,
-                    draw_queue.width() as f32,
+                    draw_queue_width as f32 + revised_config.image_padding_x as f32,
                     // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
                     y_position,
                 ),
@@ -272,6 +267,161 @@ impl ExpandedMpd {
                 text: label_text.clone(),
             });
         }
+
+        if let MpdType::Dynamic {
+            availability_start_time,
+            publish_time,
+            minimum_update_period,
+            suggested_presentation_delay,
+        } = self.mpd_type
+        {
+            let availability_timestamp_start =
+                availability_start_time + Duration::from_millis(from_ms);
+
+            // Published + Validity Indicator
+            let valid_ms_offset = (publish_time + minimum_update_period
+                - availability_timestamp_start)
+                .to_std()
+                .unwrap()
+                .as_millis() as u64;
+
+            let valid_y_position = ms_to_pixels(valid_ms_offset, revised_config.scale) as f32
+                + revised_config.image_padding_y as f32;
+
+            draw_queue.push(DrawTask::Line {
+                start: (0f32, valid_y_position),
+                end: (
+                    // IMAGE_PADDING as f32,
+                    draw_queue_width as f32,
+                    // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
+                    valid_y_position,
+                ),
+                rgba: (0, 200, 0, 255),
+            });
+
+            let published_ms_offset = (publish_time - availability_timestamp_start)
+                .to_std()
+                .unwrap()
+                .as_millis() as u64;
+
+            let published_y_position = ms_to_pixels(published_ms_offset, revised_config.scale)
+                as f32
+                + revised_config.image_padding_y as f32;
+
+            draw_queue.push(DrawTask::Line {
+                start: (0f32, published_y_position),
+                end: (
+                    // IMAGE_PADDING as f32,
+                    draw_queue_width as f32,
+                    // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
+                    published_y_position,
+                ),
+                rgba: (200, 0, 0, 255),
+            });
+
+            let published_label_text =
+                format!("Published {}", publish_time.format("%Y-%m-%d %H:%M:%S"));
+
+            let (published_label_width, published_label_height) = text_dimensions(
+                &*FONT,
+                &published_label_text,
+                revised_config.font_size / 1.5,
+            );
+
+            draw_queue.push(DrawTask::Text {
+                x: draw_queue_width as i32
+                    - published_label_width as i32
+                    - revised_config.image_padding_x as i32,
+                y: published_y_position as i32 - published_label_height as i32 - 2,
+                scale: revised_config.font_size / 1.5,
+                rgba: (200, 0, 0, 255),
+                text: published_label_text.clone(),
+            });
+
+            let valid_label_text = format!(
+                "Valid until {}",
+                (publish_time + minimum_update_period).format("%Y-%m-%d %H:%M:%S")
+            );
+
+            let (valid_label_width, valid_label_height) =
+                text_dimensions(&*FONT, &valid_label_text, revised_config.font_size / 1.5);
+
+            draw_queue.push(DrawTask::Text {
+                x: draw_queue_width as i32
+                    - valid_label_width as i32
+                    - revised_config.image_padding_x as i32,
+                y: valid_y_position as i32 - valid_label_height as i32 - 2,
+                scale: revised_config.font_size / 1.5,
+                rgba: (0, 200, 0, 255),
+                text: valid_label_text.clone(),
+            });
+
+            draw_queue.push(DrawTask::FilledRect {
+                x: 0,
+                y: published_y_position as i32,
+                width: draw_queue_width,
+                height: valid_y_position as u32 - published_y_position as u32,
+                rgba: (220, 255, 220, 255),
+                hatch: None,
+            });
+
+            if let Some(suggested_presentation_delay) = suggested_presentation_delay {
+                // Suggested Presentation Delay Indicator
+                let delay_late_ms_offset = (publish_time + minimum_update_period
+                    - availability_timestamp_start
+                    - TimeDelta::from_std(suggested_presentation_delay).unwrap())
+                .to_std()
+                .unwrap()
+                .as_millis() as u64;
+
+                let delay_late_y_position = ms_to_pixels(delay_late_ms_offset, revised_config.scale)
+                    as f32
+                    + revised_config.image_padding_y as f32;
+
+                let delay_early_ms_offset = (publish_time
+                    - availability_timestamp_start
+                    - TimeDelta::from_std(suggested_presentation_delay).unwrap())
+                .to_std()
+                .unwrap()
+                .as_millis() as u64;
+
+                let delay_early_y_position =
+                    ms_to_pixels(delay_early_ms_offset, revised_config.scale) as f32
+                        + revised_config.image_padding_y as f32;
+
+                let delay_label_text = format!("Suggested Presentation Delay");
+
+                let (delay_label_width, delay_label_height) =
+                    text_dimensions(&*FONT, &delay_label_text, revised_config.font_size / 1.5);
+
+                draw_queue.push(DrawTask::Text {
+                    x: draw_queue_width as i32
+                        - delay_label_width as i32
+                        - revised_config.image_padding_x as i32,
+                    y: delay_early_y_position as i32 - delay_label_height as i32 - 2,
+                    scale: revised_config.font_size / 1.5,
+                    rgba: (0, 0, 200, 255),
+                    text: delay_label_text.clone(),
+                });
+
+                draw_queue.push(DrawTask::FilledRect {
+                    x: 0,
+                    y: delay_early_y_position as i32,
+                    width: draw_queue_width,
+                    height: delay_late_y_position as u32 - delay_early_y_position as u32,
+                    rgba: (220, 220, 255, 255),
+                    hatch: None,
+                });
+            }
+        }
+
+        draw_queue.queue(DrawTask::HollowRect {
+            x: 0,
+            y: 0,
+            width: draw_queue_width + revised_config.image_padding_x,
+            height: draw_queue_height + revised_config.image_padding_y,
+            rgba: (0, 0, 0, 255),
+        });
 
         let warning = String::from("Experimental. Verify output");
 

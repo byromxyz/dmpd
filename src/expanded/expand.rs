@@ -1,15 +1,15 @@
-use chrono::Utc;
+use core::time;
+
+use chrono::{DateTime, Duration, Utc};
 use dash_mpd::{Event, Period, MPD};
 use log::debug;
 
 use crate::{
-    expanded::ExpandedEvent,
+    expanded::{Expanded, ExpandedEvent, MpdType},
     util::{parse::describe_representation, parse_segment_template},
 };
 
 use super::{ExpandedAdaptationSet, ExpandedMpd, ExpandedPeriod, ExpandedRepresentation};
-use core::time;
-use std::time::Duration;
 
 fn get_period_start_ms(current: &Period, prev_end_ms: u64) -> u64 {
     current
@@ -22,8 +22,7 @@ fn get_period_duration_ms(
     current: &Period,
     next: Option<&Period>,
     start_ms: u64,
-    is_dynamic: bool,
-    media_presentation_duration: Option<Duration>,
+    mpd_type: &MpdType,
 ) -> u64 {
     if let Some(duration) = current.duration {
         return duration.as_millis() as u64;
@@ -38,21 +37,50 @@ fn get_period_duration_ms(
     // No duration defined and no next period.
     // If a dynamic manifest calculate until wall clock time.
 
-    if is_dynamic {
-        let now = Utc::now();
+    match mpd_type {
+        MpdType::Dynamic {
+            availability_start_time,
+            publish_time,
+            minimum_update_period,
+            suggested_presentation_delay: _,
+        } => {
+            // Calculate the latest possible "now" based on the publish time and update period
+            let now = *publish_time
+                + Duration::from_std(*minimum_update_period)
+                    .expect("Out of range whilst parsing minimum_update_period ??");
 
-        return now.timestamp_millis() as u64 - start_ms;
-    } else {
-        let mpd_duration_ms = media_presentation_duration
-            .expect("Static manifest without mediaPresentationDuration")
-            .as_millis();
+            // Calculate a maximum duration using availability_start_time as the zero-point
+            let timeline_duration = (now - *availability_start_time).num_milliseconds() as u64;
 
-        return mpd_duration_ms as u64 - start_ms;
+            return timeline_duration - start_ms;
+        }
+        MpdType::Static {
+            media_presentation_duration,
+        } => {
+            return media_presentation_duration
+                .expect("Static manifest without mediaPresentationDuration ??")
+                .as_millis() as u64;
+        }
     }
 }
 
 impl ExpandedMpd {
     pub fn new(mpd: MPD) -> Self {
+        let mpd_type = match &mpd.mpdtype.as_deref() {
+            Some("dynamic") => MpdType::Dynamic {
+                availability_start_time: mpd.availabilityStartTime.unwrap(),
+                publish_time: mpd.publishTime.unwrap(),
+                minimum_update_period: mpd.minimumUpdatePeriod.unwrap(),
+                suggested_presentation_delay: mpd.suggestedPresentationDelay,
+            },
+            Some("static") => MpdType::Static {
+                media_presentation_duration: mpd.mediaPresentationDuration,
+            },
+            _ => MpdType::Static {
+                media_presentation_duration: mpd.mediaPresentationDuration,
+            },
+        };
+
         let mut _periods: Vec<ExpandedPeriod> = vec![];
 
         let mut previous_period_end_ms = 0u64;
@@ -60,16 +88,9 @@ impl ExpandedMpd {
         for (i, p) in mpd.periods.iter().enumerate() {
             let next = mpd.periods.get(i + 1);
 
-            let is_dynamic = mpd.mpdtype.as_deref() == Some("dynamic");
-
             let period_start_ms = get_period_start_ms(p, previous_period_end_ms);
-            let period_duration_ms = get_period_duration_ms(
-                p,
-                next,
-                period_start_ms,
-                is_dynamic,
-                mpd.mediaPresentationDuration,
-            );
+
+            let period_duration_ms = get_period_duration_ms(p, next, period_start_ms, &mpd_type);
             let period_end_ms = period_start_ms + period_duration_ms;
 
             let period_id = p.id.clone().unwrap_or("No ID".to_owned());
@@ -183,10 +204,12 @@ impl ExpandedMpd {
                 .flatten()
                 .collect();
 
+            let timeline_duration_ms = adaptation_sets.last().unwrap().end_ms();
+
             let period = ExpandedPeriod {
                 mpd_start_ms: period_start_ms,
                 mpd_end_ms: period_end_ms,
-                period_duration_ms,
+                period_duration_ms: period_duration_ms.max(timeline_duration_ms),
                 adaptation_sets,
                 id: period_id,
                 events,
@@ -197,6 +220,9 @@ impl ExpandedMpd {
             _periods.push(period);
         }
 
-        ExpandedMpd { periods: _periods }
+        ExpandedMpd {
+            periods: _periods,
+            mpd_type,
+        }
     }
 }

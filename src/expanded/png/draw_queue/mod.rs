@@ -51,6 +51,7 @@ pub enum DrawTask {
         height: u32,
         rgba: (u8, u8, u8, u8),
         hatch: Option<(u8, u8, u8, u8)>,
+        radius: Option<(u32, u32, u32, u32)>,
     },
     HollowRect {
         x: i32,
@@ -213,6 +214,7 @@ impl DrawQueue {
                     height,
                     rgba,
                     hatch,
+                    radius,
                 } => {
                     if *y > y_max || *x > x_max {
                         continue;
@@ -227,9 +229,37 @@ impl DrawQueue {
                         (*y + *height as i32).min(y_max),
                     );
 
+                    // Track which edges were trimmed
+                    let left_trimmed = x0 > *x;
+                    let top_trimmed = y0 > *y;
+                    let right_trimmed = x1 < *x + *width as i32;
+                    let bottom_trimmed = y1 < *y + *height as i32;
+
                     let (x, y) = (x0, y0);
                     let width = (x1 - x0) as u32;
+
                     let height = (y1 - y0) as u32;
+
+                    // Adjust radius for trimmed corners
+                    let adjusted_radius = radius.map(|(r_tl, r_tr, r_bl, r_br)| {
+                        let new_r_tl = if top_trimmed || left_trimmed { 0 } else { r_tl };
+                        let new_r_tr = if top_trimmed || right_trimmed {
+                            0
+                        } else {
+                            r_tr
+                        };
+                        let new_r_bl = if bottom_trimmed || left_trimmed {
+                            0
+                        } else {
+                            r_bl
+                        };
+                        let new_r_br = if bottom_trimmed || right_trimmed {
+                            0
+                        } else {
+                            r_br
+                        };
+                        (new_r_tl, new_r_tr, new_r_bl, new_r_br)
+                    });
 
                     new_queue.queue(DrawTask::FilledRect {
                         x: x - x_min,
@@ -238,6 +268,7 @@ impl DrawQueue {
                         height,
                         rgba: *rgba,
                         hatch: *hatch,
+                        radius: adjusted_radius,
                     });
                 }
                 DrawTask::HollowRect {
@@ -461,35 +492,121 @@ impl DrawQueue {
                     height,
                     rgba,
                     hatch,
+                    radius,
                 } => {
-                    // foo
-
                     let (r, g, b, a) = rgba;
-
                     let color = Rgba([*r, *g, *b, *a]);
 
                     if *height == 0 {
                         //  TODO - Prevent this
                         warn!("Attempting to draw a rect with 0 height at ({}, {}) width: {} height: {}", *x, *y, *width, *height);
                     } else {
-                        let rect = Rect::at(*x, *y).of_size(*width, *height);
+                        // Helper function to check if point is inside rounded rectangle
+                        let is_inside_rounded_rect =
+                            |px: u32, py: u32, radii: (u32, u32, u32, u32)| -> bool {
+                                let px_i = px as i32;
+                                let py_i = py as i32;
+                                let (r_tl, r_tr, r_bl, r_br) = radii;
 
-                        draw_filled_rect_mut(&mut buffer, rect, color);
+                                // Define corner regions
+                                let left = *x;
+                                let right = *x + *width as i32;
+                                let top = *y;
+                                let bottom = *y + *height as i32;
+
+                                // Check if in corner region
+                                let in_top_left =
+                                    px_i < left + r_tl as i32 && py_i < top + r_tl as i32;
+                                let in_top_right =
+                                    px_i >= right - r_tr as i32 && py_i < top + r_tr as i32;
+                                let in_bottom_left =
+                                    px_i < left + r_bl as i32 && py_i >= bottom - r_bl as i32;
+                                let in_bottom_right =
+                                    px_i >= right - r_br as i32 && py_i >= bottom - r_br as i32;
+
+                                if in_top_left {
+                                    let dx = (px_i - (left + r_tl as i32)) as f32;
+                                    let dy = (py_i - (top + r_tl as i32)) as f32;
+                                    dx * dx + dy * dy <= (r_tl * r_tl) as f32
+                                } else if in_top_right {
+                                    let dx = (px_i - (right - r_tr as i32)) as f32;
+                                    let dy = (py_i - (top + r_tr as i32)) as f32;
+                                    dx * dx + dy * dy <= (r_tr * r_tr) as f32
+                                } else if in_bottom_left {
+                                    let dx = (px_i - (left + r_bl as i32)) as f32;
+                                    let dy = (py_i - (bottom - r_bl as i32)) as f32;
+                                    dx * dx + dy * dy <= (r_bl * r_bl) as f32
+                                } else if in_bottom_right {
+                                    let dx = (px_i - (right - r_br as i32)) as f32;
+                                    let dy = (py_i - (bottom - r_br as i32)) as f32;
+                                    dx * dx + dy * dy <= (r_br * r_br) as f32
+                                } else {
+                                    true // Not in a corner, always inside
+                                }
+                            };
+
+                        // Blend alpha channels with destination buffer
+                        for py in 0..*height {
+                            for px in 0..*width {
+                                let dx = (*x + px as i32) as u32;
+                                let dy = (*y + py as i32) as u32;
+
+                                if dx < buffer.width() && dy < buffer.height() {
+                                    // Check if we should draw this pixel based on radius
+                                    let should_draw = if let Some(radii) = radius {
+                                        let (r_tl, r_tr, r_bl, r_br) = radii;
+                                        if *r_tl > 0 || *r_tr > 0 || *r_bl > 0 || *r_br > 0 {
+                                            is_inside_rounded_rect(dx, dy, *radii)
+                                        } else {
+                                            true
+                                        }
+                                    } else {
+                                        true
+                                    };
+
+                                    if should_draw {
+                                        let base_pixel = buffer.get_pixel_mut(dx, dy);
+                                        blend_pixel(base_pixel, color);
+                                    }
+                                }
+                            }
+                        }
 
                         if let Some(hatch_color) = *hatch {
-                            for i in (0..(*width + *height)).step_by(10) {
-                                let x_start = *x;
-                                let y_start = *y + i as i32;
-                                let x_end = *x + i as i32;
-                                let y_end = *y;
+                            let (r, g, b, a) = hatch_color;
+                            let color = Rgba([r, g, b, a]);
+                            let gap = 4;
 
-                                if x_start <= *x + *width as i32 && y_end <= *y + *height as i32 {
-                                    draw_line_segment_mut(
-                                        &mut buffer,
-                                        (x_start as f32, y_start as f32),
-                                        (x_end as f32, y_end as f32),
-                                        Rgba(hatch_color.into()),
-                                    );
+                            for py in 0..*height {
+                                for px in 0..*width {
+                                    let dx = (*x + px as i32) as u32;
+                                    let dy = (*y + py as i32) as u32;
+
+                                    if dx < buffer.width() && dy < buffer.height() {
+                                        // Determine if this pixel should be hatched
+                                        // Draw diagonal lines from bottom-left to top-right
+                                        let should_hatch = (px as i32 + py as i32) % gap == 0;
+
+                                        if should_hatch {
+                                            // Check if hatch line point is inside rounded rect
+                                            let should_draw = if let Some(radii) = radius {
+                                                let (r_tl, r_tr, r_bl, r_br) = radii;
+                                                if *r_tl > 0 || *r_tr > 0 || *r_bl > 0 || *r_br > 0
+                                                {
+                                                    is_inside_rounded_rect(dx, dy, *radii)
+                                                } else {
+                                                    true
+                                                }
+                                            } else {
+                                                true
+                                            };
+
+                                            if should_draw {
+                                                let base_pixel = buffer.get_pixel_mut(dx, dy);
+                                                blend_pixel(base_pixel, color);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -502,15 +619,46 @@ impl DrawQueue {
                     height,
                     rgba,
                 } => {
-                    // foo
-
                     let (r, g, b, a) = rgba;
-
                     let color = Rgba([*r, *g, *b, *a]);
 
-                    let rect = Rect::at(*x, *y).of_size(*width, *height);
-
-                    draw_hollow_rect_mut(&mut buffer, rect, color);
+                    // Draw rectangle borders with alpha blending
+                    // Top edge
+                    for px in 0..*width {
+                        let dx = (*x + px as i32) as u32;
+                        let dy = *y as u32;
+                        if dx < buffer.width() && dy < buffer.height() {
+                            let base_pixel = buffer.get_pixel_mut(dx, dy);
+                            blend_pixel(base_pixel, color);
+                        }
+                    }
+                    // Bottom edge
+                    for px in 0..*width {
+                        let dx = (*x + px as i32) as u32;
+                        let dy = (*y + *height as i32 - 1) as u32;
+                        if dx < buffer.width() && dy < buffer.height() {
+                            let base_pixel = buffer.get_pixel_mut(dx, dy);
+                            blend_pixel(base_pixel, color);
+                        }
+                    }
+                    // Left edge
+                    for py in 0..*height {
+                        let dx = *x as u32;
+                        let dy = (*y + py as i32) as u32;
+                        if dx < buffer.width() && dy < buffer.height() {
+                            let base_pixel = buffer.get_pixel_mut(dx, dy);
+                            blend_pixel(base_pixel, color);
+                        }
+                    }
+                    // Right edge
+                    for py in 0..*height {
+                        let dx = (*x + *width as i32 - 1) as u32;
+                        let dy = (*y + py as i32) as u32;
+                        if dx < buffer.width() && dy < buffer.height() {
+                            let base_pixel = buffer.get_pixel_mut(dx, dy);
+                            blend_pixel(base_pixel, color);
+                        }
+                    }
                 }
                 DrawTask::Text {
                     x,
@@ -520,17 +668,57 @@ impl DrawQueue {
                     text,
                 } => {
                     let (r, g, b, a) = rgba;
-
                     let color = Rgba([*r, *g, *b, *a]);
 
-                    draw_text_mut(&mut buffer, color, *x, *y, *scale, &font, text);
+                    // Draw text to a temporary buffer then blend it
+                    let (text_width, text_height) = text_dimensions(&*FONT, text, *scale);
+                    if text_width > 0 && text_height > 0 {
+                        let mut temp_buffer: ImageBuffer<Rgba<u8>, Vec<u8>> =
+                            ImageBuffer::from_pixel(text_width, text_height, Rgba([0, 0, 0, 0]));
+                        draw_text_mut(&mut temp_buffer, color, 0, 0, *scale, &font, text);
+                        blend_images(&mut buffer, &temp_buffer, *x as u32, *y as u32);
+                    }
                 }
                 DrawTask::Line { start, end, rgba } => {
                     let (r, g, b, a) = rgba;
-
                     let color = Rgba([*r, *g, *b, *a]);
 
-                    draw_line_segment_mut(&mut buffer, *start, *end, color);
+                    // Draw line with alpha blending using Bresenham's algorithm
+                    let (x0, y0) = (start.0 as i32, start.1 as i32);
+                    let (x1, y1) = (end.0 as i32, end.1 as i32);
+
+                    let dx = (x1 - x0).abs();
+                    let dy = (y1 - y0).abs();
+                    let sx = if x0 < x1 { 1 } else { -1 };
+                    let sy = if y0 < y1 { 1 } else { -1 };
+                    let mut err = dx - dy;
+                    let mut x = x0;
+                    let mut y = y0;
+
+                    loop {
+                        if x >= 0
+                            && y >= 0
+                            && (x as u32) < buffer.width()
+                            && (y as u32) < buffer.height()
+                        {
+                            let base_pixel = buffer.get_pixel_mut(x as u32, y as u32);
+                            blend_pixel(base_pixel, color);
+                        }
+
+                        if x == x1 && y == y1 {
+                            break;
+                        }
+
+                        let e2 = 2 * err;
+                        if e2 > -dy {
+                            err -= dy;
+                            x += sx;
+                        }
+                        if e2 < dx {
+                            err += dx;
+                            y += sy;
+                        }
+                    }
                 }
                 DrawTask::Copy { draw_queue, x, y } => {
                     // buffer

@@ -19,7 +19,7 @@ use super::{
 
 enum Color {
     AudioSegmentOdd,
-    AudioSegmentEvent,
+    AudioSegmentEven,
     VideoSegmentOdd,
     VideoSegmentEven,
     TextSegmentOdd,
@@ -30,7 +30,7 @@ impl Color {
     pub fn to_rgba(self) -> (u8, u8, u8, u8) {
         match self {
             Color::AudioSegmentOdd => (144, 190, 109, 255),
-            Color::AudioSegmentEvent => (169, 204, 142, 255),
+            Color::AudioSegmentEven => (169, 204, 142, 255),
             Color::VideoSegmentOdd => (39, 125, 161, 255),
             Color::VideoSegmentEven => (47, 151, 196, 255),
             Color::TextSegmentOdd => (255, 179, 102, 255),
@@ -259,11 +259,11 @@ impl ExpandedMpd {
             let (_, label_height) =
                 text_dimensions(&*FONT, &label_text, revised_config.font_size / 1.5);
 
-            draw_queue.push(DrawTask::Text {
+            draw_queue.queue(DrawTask::Text {
                 x: 10i32,
                 y: y_position as i32 - label_height as i32 - 2,
                 scale: revised_config.font_size / 1.5,
-                rgba: (200, 200, 200, 255),
+                rgba: (0, 0, 0, 100),
                 text: label_text.clone(),
             });
         }
@@ -292,11 +292,11 @@ impl ExpandedMpd {
                 start: (0f32, valid_y_position),
                 end: (
                     // IMAGE_PADDING as f32,
-                    draw_queue_width as f32,
+                    draw_queue_width as f32 + revised_config.image_padding_x as f32,
                     // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
                     valid_y_position,
                 ),
-                rgba: (0, 200, 0, 255),
+                rgba: (0, 50, 0, 50),
             });
 
             let published_ms_offset = (publish_time - availability_timestamp_start)
@@ -312,11 +312,11 @@ impl ExpandedMpd {
                 start: (0f32, published_y_position),
                 end: (
                     // IMAGE_PADDING as f32,
-                    draw_queue_width as f32,
+                    draw_queue_width as f32 + revised_config.image_padding_x as f32,
                     // draw_queue.height() as f32 - IMAGE_PADDING as f32 - PERIOD_TITLE_Y_SPACING as f32,
                     published_y_position,
                 ),
-                rgba: (200, 0, 0, 255),
+                rgba: (0, 50, 0, 50),
             });
 
             let published_label_text =
@@ -329,12 +329,10 @@ impl ExpandedMpd {
             );
 
             draw_queue.push(DrawTask::Text {
-                x: draw_queue_width as i32
-                    - published_label_width as i32
-                    - revised_config.image_padding_x as i32,
+                x: draw_queue_width as i32 - published_label_width as i32,
                 y: published_y_position as i32 - published_label_height as i32 - 2,
                 scale: revised_config.font_size / 1.5,
-                rgba: (200, 0, 0, 255),
+                rgba: (0, 200, 0, 255),
                 text: published_label_text.clone(),
             });
 
@@ -347,9 +345,7 @@ impl ExpandedMpd {
                 text_dimensions(&*FONT, &valid_label_text, revised_config.font_size / 1.5);
 
             draw_queue.push(DrawTask::Text {
-                x: draw_queue_width as i32
-                    - valid_label_width as i32
-                    - revised_config.image_padding_x as i32,
+                x: draw_queue_width as i32 - valid_label_width as i32,
                 y: valid_y_position as i32 - valid_label_height as i32 - 2,
                 scale: revised_config.font_size / 1.5,
                 rgba: (0, 200, 0, 255),
@@ -359,10 +355,11 @@ impl ExpandedMpd {
             draw_queue.push(DrawTask::FilledRect {
                 x: 0,
                 y: published_y_position as i32,
-                width: draw_queue_width,
+                width: draw_queue_width + revised_config.image_padding_x,
                 height: valid_y_position as u32 - published_y_position as u32,
-                rgba: (220, 255, 220, 255),
+                rgba: (0, 150, 0, 50),
                 hatch: None,
+                radius: None,
             });
 
             if let Some(suggested_presentation_delay) = suggested_presentation_delay {
@@ -395,9 +392,7 @@ impl ExpandedMpd {
                     text_dimensions(&*FONT, &delay_label_text, revised_config.font_size / 1.5);
 
                 draw_queue.push(DrawTask::Text {
-                    x: draw_queue_width as i32
-                        - delay_label_width as i32
-                        - revised_config.image_padding_x as i32,
+                    x: draw_queue_width as i32 - delay_label_width as i32,
                     y: delay_early_y_position as i32 - delay_label_height as i32 - 2,
                     scale: revised_config.font_size / 1.5,
                     rgba: (0, 0, 200, 255),
@@ -407,10 +402,11 @@ impl ExpandedMpd {
                 draw_queue.push(DrawTask::FilledRect {
                     x: 0,
                     y: delay_early_y_position as i32,
-                    width: draw_queue_width,
+                    width: draw_queue_width + revised_config.image_padding_x,
                     height: delay_late_y_position as u32 - delay_early_y_position as u32,
-                    rgba: (220, 220, 255, 255),
+                    rgba: (0, 0, 150, 50),
                     hatch: None,
+                    radius: None,
                 });
             }
         }
@@ -486,50 +482,6 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
         });
 
         offset_x += width + config.adaptation_set_padding;
-    }
-
-    let top_left = (0f32, 0f32);
-    let bottom_left = (0f32, draw_queue.height() as f32 - 1.0);
-    let top_right = (draw_queue.width() as f32 - 1.0, 0f32);
-    let bottom_right = (
-        draw_queue.width() as f32 - 1.0,
-        draw_queue.height() as f32 - 1.0,
-    );
-
-    // Left
-    draw_queue.queue(DrawTask::Line {
-        start: top_left,
-        end: bottom_left,
-        rgba: (0, 0, 0, 255),
-    });
-
-    // Right
-    draw_queue.queue(DrawTask::Line {
-        start: top_right,
-        end: bottom_right,
-        rgba: (0, 0, 0, 255),
-    });
-
-    if let Some(from_ms) = config.from_ms {
-        if from_ms <= period.mpd_start_ms {
-            // Top
-            draw_queue.queue(DrawTask::Line {
-                start: top_left,
-                end: top_right,
-                rgba: (0, 0, 0, 255),
-            });
-        }
-    }
-
-    if let Some(to_ms) = config.to_ms {
-        if to_ms >= period.mpd_end_ms {
-            // Bottom
-            draw_queue.queue(DrawTask::Line {
-                start: bottom_left,
-                end: bottom_right,
-                rgba: (0, 0, 0, 255),
-            });
-        }
     }
 
     let annotation_queue = DrawQueue::new();
@@ -609,6 +561,7 @@ fn draw_representation(
                     height: initial_y as u32,
                     rgba: (200, 200, 200, 255),
                     hatch: Some((150, 150, 150, 255)),
+                    radius: None,
                 });
             }
 
@@ -630,18 +583,9 @@ fn draw_representation(
                         warn!("Less than 1px segment");
                     } else {
                         let (r, g, b, a) = match content_type {
-                            "audio" => match i % 2 {
-                                0 => Color::AudioSegmentEvent.to_rgba(),
-                                _ => Color::AudioSegmentOdd.to_rgba(),
-                            },
-                            "video" => match i % 2 {
-                                0 => Color::VideoSegmentEven.to_rgba(),
-                                _ => Color::VideoSegmentOdd.to_rgba(),
-                            },
-                            "text" => match i % 2 {
-                                0 => Color::TextSegmentEven.to_rgba(),
-                                _ => Color::TextSegmentOdd.to_rgba(),
-                            },
+                            "audio" => Color::AudioSegmentEven.to_rgba(),
+                            "video" => Color::VideoSegmentEven.to_rgba(),
+                            "text" => Color::TextSegmentEven.to_rgba(),
                             _ => (255, 255, 0, 255),
                         };
 
@@ -652,6 +596,7 @@ fn draw_representation(
                             height: height as u32,
                             rgba: (r, g, b, a),
                             hatch: None,
+                            radius: Some((width / 2, width / 2, width / 2, width / 2)),
                         });
 
                         // start_y = y1;
@@ -686,6 +631,7 @@ fn draw_representation(
                     height: ms_to_pixels(period_end_ms - representation.end_ms(), config.scale),
                     rgba: (200, 200, 200, 255),
                     hatch: Some((150, 150, 150, 255)),
+                    radius: None,
                 });
             }
         }

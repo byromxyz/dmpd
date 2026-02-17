@@ -23,6 +23,8 @@ fn test_filled_rest_one() {
         width,
         height,
         rgba,
+        hatch,
+        radius,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 0);
@@ -45,6 +47,8 @@ fn test_filled_rest_two() {
         width: 100,
         height: 100,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim(
@@ -59,6 +63,8 @@ fn test_filled_rest_two() {
         width,
         height,
         rgba,
+        hatch: _,
+        radius: _,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 0);
@@ -81,6 +87,8 @@ fn test_hollow_rect_one() {
         width: 100,
         height: 100,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((0, 50), (200, 150));
@@ -92,6 +100,8 @@ fn test_hollow_rect_one() {
         width,
         height,
         rgba,
+        hatch: _,
+        radius: _,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 100);
@@ -114,6 +124,8 @@ fn test_trim_out_of_bounds_y() {
         width: 100,
         height: 100,
         rgba: (255, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((0, 50), (200, 150));
@@ -131,6 +143,8 @@ fn test_trim_partial_overlap_y() {
         width: 100,
         height: 50,
         rgba: (0, 255, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((0, 100), (150, 140));
@@ -142,6 +156,8 @@ fn test_trim_partial_overlap_y() {
         width,
         height,
         rgba,
+        hatch: _,
+        radius: _,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 50);
@@ -255,6 +271,8 @@ fn test_trim_x() {
         width: 100,
         height: 100,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((50, 0), (150, 200));
@@ -266,6 +284,8 @@ fn test_trim_x() {
         width,
         height,
         rgba,
+        hatch: _,
+        radius: _,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 50);
@@ -288,6 +308,8 @@ fn test_trim_out_of_bounds_x() {
         width: 100,
         height: 100,
         rgba: (255, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((50, 0), (150, 200));
@@ -305,6 +327,8 @@ fn test_trim_partial_overlap_x() {
         width: 50,
         height: 100,
         rgba: (0, 255, 0, 255),
+        hatch: None,
+        radius: None,
     });
 
     let trimmed = queue.trim((100, 0), (140, 150));
@@ -316,6 +340,8 @@ fn test_trim_partial_overlap_x() {
         width,
         height,
         rgba,
+        hatch: _,
+        radius: _,
     } = &trimmed.queue[0]
     {
         assert_eq!(*x, 20);
@@ -409,6 +435,8 @@ fn test_trim_copy_overgrown_y() {
         width: 50,
         height: 50,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
     inner_queue.queue(DrawTask::FilledRect {
         x: 0,
@@ -416,6 +444,8 @@ fn test_trim_copy_overgrown_y() {
         width: 50,
         height: 50,
         rgba: (128, 128, 128, 255),
+        hatch: None,
+        radius: None,
     });
     inner_queue.queue(DrawTask::FilledRect {
         x: 0,
@@ -423,6 +453,8 @@ fn test_trim_copy_overgrown_y() {
         width: 50,
         height: 50,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
     inner_queue.queue(DrawTask::FilledRect {
         x: 0,
@@ -430,6 +462,8 @@ fn test_trim_copy_overgrown_y() {
         width: 50,
         height: 50,
         rgba: (0, 0, 0, 255),
+        hatch: None,
+        radius: None,
     });
     inner_queue.queue(DrawTask::FilledRect {
         x: 0,
@@ -437,6 +471,8 @@ fn test_trim_copy_overgrown_y() {
         width: 50,
         height: 50,
         rgba: (128, 128, 128, 255),
+        hatch: None,
+        radius: None,
     });
 
     let mut queue = DrawQueue::new();
@@ -461,6 +497,8 @@ fn test_trim_copy_overgrown_y() {
             width,
             height,
             rgba,
+            hatch: _,
+            radius: _,
         } = &draw_queue.queue[0]
         {
             assert_eq!(*x, 0);
@@ -478,6 +516,8 @@ fn test_trim_copy_overgrown_y() {
             width,
             height,
             rgba,
+            hatch: _,
+            radius: _,
         } = &draw_queue.queue[1]
         {
             assert_eq!(*x, 0);
@@ -495,6 +535,8 @@ fn test_trim_copy_overgrown_y() {
             width,
             height,
             rgba,
+            hatch: _,
+            radius: _,
         } = &draw_queue.queue[2]
         {
             assert_eq!(*x, 0);

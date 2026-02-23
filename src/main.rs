@@ -47,7 +47,7 @@ pub struct Args {
 
     #[clap(
         long,
-        default_value = "120000",
+        default_value = "30000",
         value_parser = parse_max_duration,
         help = "The maximum duration of the output PNG file"
     )]

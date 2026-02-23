@@ -18,22 +18,22 @@ use super::{
 };
 
 enum Color {
-    AudioSegmentOdd,
+    // AudioSegmentOdd,
     AudioSegmentEven,
-    VideoSegmentOdd,
+    // VideoSegmentOdd,
     VideoSegmentEven,
-    TextSegmentOdd,
+    // TextSegmentOdd,
     TextSegmentEven,
 }
 
 impl Color {
     pub fn to_rgba(self) -> (u8, u8, u8, u8) {
         match self {
-            Color::AudioSegmentOdd => (144, 190, 109, 255),
+            // Color::AudioSegmentOdd => (144, 190, 109, 255),
             Color::AudioSegmentEven => (169, 204, 142, 255),
-            Color::VideoSegmentOdd => (39, 125, 161, 255),
+            // Color::VideoSegmentOdd => (39, 125, 161, 255),
             Color::VideoSegmentEven => (47, 151, 196, 255),
-            Color::TextSegmentOdd => (255, 179, 102, 255),
+            // Color::TextSegmentOdd => (255, 179, 102, 255),
             Color::TextSegmentEven => (255, 204, 153, 255),
         }
     }
@@ -411,12 +411,13 @@ impl ExpandedMpd {
             }
         }
 
+        // Draw a transparent border to introduce Y padding at the bottom
         draw_queue.queue(DrawTask::HollowRect {
             x: 0,
             y: 0,
-            width: draw_queue_width + revised_config.image_padding_x,
-            height: draw_queue_height + revised_config.image_padding_y,
-            rgba: (0, 0, 0, 255),
+            width: draw_queue.width(),
+            height: draw_queue.height() + revised_config.image_padding_y,
+            rgba: (0, 0, 0, 0),
         });
 
         let warning = String::from("Experimental. Verify output");
@@ -486,43 +487,40 @@ fn draw_period(period: &ExpandedPeriod, config: &Config) -> DrawnPeriod {
 
     let annotation_queue = DrawQueue::new();
 
-    // for event in period.events.iter() {
-    //     // Ignore events which end before the segment timeline
-    //     if event.end_ms < period.start_ms() {
-    //         debug!(
-    //             "Ignoring Event at {} - {} which ends before first segment at {}",
-    //             event.start_ms,
-    //             event.end_ms,
-    //             period.start_ms()
-    //         );
-    //         continue;
-    //     }
+    for event in period.events.iter() {
+        // Ignore events which end before the segment timeline
+        if event.end_ms < period.start_ms() {
+            debug!(
+                "Ignoring Event at {} - {} which ends before first segment at {}",
+                event.start_ms,
+                event.end_ms,
+                period.start_ms()
+            );
+            continue;
+        }
 
-    //     let x_position = 10.0;
-    //     let start_y = ms_to_pixels(event.start_ms - period.start_ms(), config.scale) as f32;
+        let x_position = 0.0;
+        let start_y = ms_to_pixels(event.start_ms - period.start_ms(), config.scale) as f32;
+        draw_queue.push(DrawTask::Line {
+            start: (x_position, start_y),
+            end: (draw_queue.width as f32, start_y),
+            rgba: (255, 165, 0, 255),
+        });
 
-    //     annotation_queue.queue(DrawTask::Line {
-    //         start: (x_position, start_y),
-    //         end: (x_position + 20.0, start_y),
-    //         rgba: (255, 0, 0, 255),
-    //     });
+        if event.duration_ms > 0 {
+            let end_y = ms_to_pixels(event.end_ms - period.start_ms(), config.scale) as f32;
 
-    //     if event.duration_ms > 0 {
-    //         let end_y = ms_to_pixels(event.end_ms - period.start_ms(), config.scale) as f32;
-
-    //         annotation_queue.queue(DrawTask::Line {
-    //             start: (x_position + 20.0, start_y),
-    //             end: (x_position + 20.0, end_y),
-    //             rgba: (255, 0, 0, 255),
-    //         });
-
-    //         annotation_queue.queue(DrawTask::Line {
-    //             start: (x_position, end_y),
-    //             end: (x_position + 20.0, end_y),
-    //             rgba: (255, 0, 0, 255),
-    //         });
-    //     }
-    // }
+            draw_queue.push(DrawTask::FilledRect {
+                x: x_position as i32,
+                y: start_y as i32,
+                width: draw_queue.width,
+                height: (end_y - start_y) as u32,
+                rgba: (255, 165, 0, 100),
+                hatch: None,
+                radius: None,
+            });
+        }
+    }
 
     DrawnPeriod {
         draw_queue: draw_queue,
